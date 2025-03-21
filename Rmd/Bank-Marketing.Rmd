@@ -1,5 +1,7 @@
 ---
 title: "Bank-Marketing"
+knit: (function(input, ...) {rmarkdown::render(input, output_file="../docs/index.html")})
+
 output: 
   html_document:
     theme: cerulean
@@ -22,6 +24,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r, include=FALSE}
 library(DT)
 library(visdat)
+library(readr)
+library(ggplot2)
+library(GGally)
 ```
 
 ```{r child="Introduction.Rmd" } 

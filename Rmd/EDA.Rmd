@@ -1,11 +1,12 @@
 ## Exploratory Data Analysis
 
 ```{r, include=FALSE}
-data <- read.csv("../data/raw/bank_marketing_train.csv")
+train <- read.csv("../data/raw/bank_marketing_train.csv")
 ```
 
 ```{r}
-str(data)
+datatable(head(train, 100), options = list(scrollX = TRUE))
+str(train)
 ```
 
 1. `age` (Integer): age of the customer
@@ -29,5 +30,5 @@ str(data)
 Source: [UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/222/bank+marketing)
 
 ```{r}
-vis_dat(data)
+vis_dat(train)
 ```
