@@ -1,0 +1,31 @@
+---
+title: "Bank-Marketing"
+output: 
+  html_document:
+    theme: cerulean
+    toc: true
+    number_sections: true
+    toc_float: true
+---
+
+_Authors_:
+[Mauro Venticinque](https://it.linkedin.com/in/mauro-venticinque-01a297212), Angelo Schillaci, [Daniele Tambone](https://www.linkedin.com/in/daniele-tambone-b5733616a/)
+
+_GitHub project_: [Bank-Marketing](https://github.com/DanieleT25/Bank-Marketing)
+
+_Date_: `r Sys.Date()`
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+library(DT)
+library(visdat)
+```
+
+```{r child="Introduction.Rmd" } 
+```
+
+```{r child="EDA.Rmd" } 
+```
