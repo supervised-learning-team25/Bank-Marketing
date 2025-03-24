@@ -7,6 +7,7 @@ train <- read.csv("../data/raw/bank_marketing_train.csv")
 ```{r}
 datatable(head(train, 100), options = list(scrollX = TRUE))
 str(train)
+attach(train)
 ```
 
 ### Variable descriptions
@@ -49,3 +50,11 @@ vis_dat(train)
 ```{r}
 corrplot(cor(train[, c("X", "age", "duration", "campaign", "pdays", "previous", "emp.var.rate", "cons.price.idx", "cons.conf.idx", "euribor3m", "nr.employed")]), method="pie")
 ```
+```{r}
+plot_ly(train, x = job, y = age, type = 'box', color = job)
+
+plot_ly(train, x = subscribed, type = 'histogram')
+
+
+```
+

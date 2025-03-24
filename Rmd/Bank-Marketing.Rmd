@@ -28,6 +28,7 @@ library(readr)
 library(ggplot2)
 library(GGally)
 library(corrplot)
+library(plotly)
 ```
 
 ```{r child="Introduction.Rmd" } 
