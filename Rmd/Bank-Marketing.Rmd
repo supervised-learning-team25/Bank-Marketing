@@ -11,7 +11,7 @@ output:
 ---
 
 _Authors_:
-[Mauro Venticinque](https://it.linkedin.com/in/mauro-venticinque-01a297212), Angelo Schillaci, [Daniele Tambone](https://www.linkedin.com/in/daniele-tambone-b5733616a/)
+[Mauro Venticinque](https://it.linkedin.com/in/mauro-venticinque-01a297212), [Angelo Schillaci](https://www.linkedin.com/in/angelo-schillaci-095064213), [Daniele Tambone](https://www.linkedin.com/in/daniele-tambone-b5733616a)
 
 _GitHub project_: [Bank-Marketing](https://github.com/DanieleT25/Bank-Marketing)
 
@@ -27,6 +27,7 @@ library(visdat)
 library(readr)
 library(ggplot2)
 library(GGally)
+library(corrplot)
 ```
 
 ```{r child="Introduction.Rmd" } 
