@@ -1,2 +1,2 @@
 ## Introduction {-}
-...
+Here we will write some information about the project.
