@@ -50,6 +50,7 @@ vis_dat(train)
 ```{r}
 corrplot(cor(train[, c("X", "age", "duration", "campaign", "pdays", "previous", "emp.var.rate", "cons.price.idx", "cons.conf.idx", "euribor3m", "nr.employed")]), method="pie")
 ```
+
 ```{r}
 plot_ly(train, x = job, y = age, type = 'box', color = job)
 
@@ -57,4 +58,68 @@ plot_ly(train, x = subscribed, type = 'histogram')
 
 
 ```
+
+
+```{r}
+ggplot(train, aes(x = education, fill = factor(subscribed))) +
+  geom_bar(position = "fill") +ylab("frequency") +  
+  ylab("Proportion") +
+  scale_fill_discrete(name = "Subscribed") +  
+  xlab("Education") +
+  geom_hline(yintercept = 0.5, linetype = "dashed", color = "red") +
+  theme_minimal()
+
+
+
+ggplot(train, aes(x = poutcome, fill = factor(subscribed))) +
+  geom_bar(position = "fill") +ylab("frequency") +  
+  ylab("Proportion") +
+  scale_fill_discrete(name = "Subscribed") +  
+  xlab("Outcome of previous campaign") +
+  geom_hline(yintercept = 0.5, linetype = "dashed", color = "red") +
+  theme_minimal()
+
+ggplot(train, aes(x = cut(age, breaks = 4), fill = factor(subscribed))) +
+  geom_bar(position = "fill") +ylab("frequency") +  
+  ylab("Proportion") +
+  scale_fill_discrete(name = "Subscribed") +  
+  xlab("Age range") +
+  geom_hline(yintercept = 0.5, linetype = "dashed", color = "red") +
+  theme_minimal()
+
+ggplot(train, aes(x = job, fill = factor(subscribed))) +
+  geom_bar(position = "fill") +ylab("frequency") +  
+  ylab("Proportion") +
+  scale_fill_discrete(name = "Subscribed") +  
+  xlab("Job") +
+  geom_hline(yintercept = 0.5, linetype = "dashed", color = "red") +
+  theme_minimal()
+
+
+ggplot(train, aes(x=cut(cons.price.idx, breaks=3), fill = factor(subscribed))) +
+  geom_bar(position = "fill") +ylab("frequency") +  
+  ylab("Proportion") +
+  scale_fill_discrete(name = "Subscribed") +  
+  xlab("Consumer price index") +
+  geom_hline(yintercept = 0.5, linetype = "dashed", color = "red") +
+  theme_minimal()
+
+ggplot(train, aes(x=cut(cons.conf.idx, breaks=3), fill = factor(subscribed))) +
+  geom_bar(position = "fill") +ylab("frequency") +  
+  ylab("Proportion") +
+  scale_fill_discrete(name = "Subscribed") +  
+  xlab("Consumer Confidence Index") +
+  geom_hline(yintercept = 0.5, linetype = "dashed", color = "red") +
+  theme_minimal()
+```
+
+
+
+```{r}
+ggpairs(train[, c("age", "duration", "campaign", "pdays", "previous", "emp.var.rate", "cons.price.idx", "cons.conf.idx", "euribor3m", "nr.employed")], columns = 1:10, 
+                 lower = list(continuous = wrap("points", alpha = 0.5, color = "darkred", size=0.5)),
+                 title='Scatterplot', axisLabels='none')
+```
+
+
 
