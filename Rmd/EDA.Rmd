@@ -12,7 +12,7 @@ attach(train)
 
 ### Variable descriptions
 #### Bank client data:
-1. `X` (Integer): average yearly balance
+1. `X` (Integer): id of customer
 2. `age` (Integer): age of the customer
 3. `job` (Categorical): occupation
 4. `marital` (Categorical): marital status
@@ -45,81 +45,119 @@ Source: [UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/22
 
 ```{r}
 vis_dat(train)
+skim(train)
 ```
 
 ```{r}
+plot_ly(train, x = subscribed, type = 'histogram')
+
 corrplot(cor(train[, c("X", "age", "duration", "campaign", "pdays", "previous", "emp.var.rate", "cons.price.idx", "cons.conf.idx", "euribor3m", "nr.employed")]), method="pie")
 ```
 
 ```{r}
 plot_ly(train, x = job, y = age, type = 'box', color = job)
 
-plot_ly(train, x = subscribed, type = 'histogram')
-
-
+plot_ly(train, x = education, y = age, type = 'box', color = education)
 ```
 
 
 ```{r}
-ggplot(train, aes(x = education, fill = factor(subscribed))) +
-  geom_bar(position = "fill") +ylab("frequency") +  
+eduResp <- ggplot(train, aes(x = education, fill = factor(subscribed))) +
+  geom_bar(position = "fill") +
+  coord_flip() +
   ylab("Proportion") +
-  scale_fill_discrete(name = "Subscribed") +  
+  scale_fill_discrete(name = "Subscribed") +
   xlab("Education") +
   geom_hline(yintercept = 0.5, linetype = "dashed", color = "red") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+eduFreq <- ggplot(as.data.frame(table(education)/sum(table(education))*100), aes(x = reorder(education, Freq), y = Freq)) +
+  geom_bar(stat = "identity", color = "gray",  fill = "steelblue", alpha=0.9) +  
+  coord_flip() +
+  labs(title = "Education", x = "Education Level", y = "Count") +
   theme_minimal()
 
-
+eduFreq / eduResp
 
 ggplot(train, aes(x = poutcome, fill = factor(subscribed))) +
-  geom_bar(position = "fill") +ylab("frequency") +  
+  geom_bar(position = "fill") +
   ylab("Proportion") +
-  scale_fill_discrete(name = "Subscribed") +  
+  scale_fill_discrete(name = "Subscribed") +
   xlab("Outcome of previous campaign") +
   geom_hline(yintercept = 0.5, linetype = "dashed", color = "red") +
-  theme_minimal()
+  theme_minimal() +
+  geom_text(
+    data = transform(as.data.frame(table(train$poutcome)),
+                     poutcome = Var1,
+                     label = paste0(round(100 * Freq / sum(Freq), 1), "%")),
+    aes(x = poutcome, y = 1.05, label = label),
+    inherit.aes = FALSE
+  )
 
-ggplot(train, aes(x = cut(age, breaks = 4), fill = factor(subscribed))) +
-  geom_bar(position = "fill") +ylab("frequency") +  
-  ylab("Proportion") +
-  scale_fill_discrete(name = "Subscribed") +  
-  xlab("Age range") +
-  geom_hline(yintercept = 0.5, linetype = "dashed", color = "red") +
-  theme_minimal()
+ggplot(train, aes(age)) + geom_histogram(binwidth=4,position="fill",aes(fill=factor(subscribed)))+scale_fill_discrete(name="Subscribed")+ylab("proportion")+geom_hline(yintercept=0.5)
 
 ggplot(train, aes(x = job, fill = factor(subscribed))) +
-  geom_bar(position = "fill") +ylab("frequency") +  
+  geom_bar(position = "fill") +
   ylab("Proportion") +
-  scale_fill_discrete(name = "Subscribed") +  
+  scale_fill_discrete(name = "Subscribed") +
   xlab("Job") +
   geom_hline(yintercept = 0.5, linetype = "dashed", color = "red") +
-  theme_minimal()
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  geom_text(
+    data = transform(as.data.frame(table(train$job)),
+                     job = Var1,
+                     label = paste0(round(100 * Freq / sum(Freq), 1), "%")),
+    aes(x = job, y = 1.05, label = label),
+    inherit.aes = FALSE
+  )
 
+ggplot(train, aes(cons.price.idx)) + geom_histogram(binwidth=2,position="fill",aes(fill=factor(subscribed)))+scale_fill_discrete(name="Subscribed")+ylab("proportion")+geom_hline(yintercept=0.5)
 
-ggplot(train, aes(x=cut(cons.price.idx, breaks=3), fill = factor(subscribed))) +
-  geom_bar(position = "fill") +ylab("frequency") +  
+ggplot(train, aes(cons.conf.idx)) + geom_histogram(binwidth=3,position="fill",aes(fill=factor(subscribed)))+scale_fill_discrete(name="Subscribed")+ylab("proportion")+geom_hline(yintercept=0.5)
+
+ggplot(train, aes(euribor3m)) + geom_histogram(binwidth=3,position="fill",aes(fill=factor(subscribed)))+scale_fill_discrete(name="Subscribed")+ylab("proportion")+geom_hline(yintercept=0.5)
+
+train$emp_cat <- ifelse(train$emp.var.rate < 0, "Negative", "Positive or Zero")
+
+ggplot(train, aes(x = emp_cat, fill = factor(subscribed))) +
+  geom_bar(position = "fill") +
   ylab("Proportion") +
-  scale_fill_discrete(name = "Subscribed") +  
-  xlab("Consumer price index") +
+  scale_fill_discrete(name = "Subscribed") +
+  xlab("Employment Variation (±)") +
   geom_hline(yintercept = 0.5, linetype = "dashed", color = "red") +
-  theme_minimal()
+  theme_minimal() +
+  geom_text(
+    data = {
+      df <- as.data.frame(table(train$emp_cat))
+      names(df) <- c("emp_cat", "Freq")
+      df$label <- paste0(round(100 * df$Freq / sum(df$Freq), 1), "%")
+      df$y <- 1.05
+      df
+    },
+    aes(x = emp_cat, y = y, label = label),
+    inherit.aes = FALSE
+  )
 
-ggplot(train, aes(x=cut(cons.conf.idx, breaks=3), fill = factor(subscribed))) +
-  geom_bar(position = "fill") +ylab("frequency") +  
+ggplot(train, aes(x = default, fill = factor(subscribed))) +
+  geom_bar(position = "fill") +
   ylab("Proportion") +
-  scale_fill_discrete(name = "Subscribed") +  
-  xlab("Consumer Confidence Index") +
+  scale_fill_discrete(name = "Subscribed") +
+  xlab("Default") +
   geom_hline(yintercept = 0.5, linetype = "dashed", color = "red") +
-  theme_minimal()
+  theme_minimal() +
+  geom_text(
+    data = transform(as.data.frame(table(train$default)),
+                     default = Var1,
+                     label = paste0(round(100 * Freq / sum(Freq), 1), "%")),
+    aes(x = default, y = 1.05, label = label),
+    inherit.aes = FALSE
+  )
 ```
-
-
 
 ```{r}
 ggpairs(train[, c("age", "duration", "campaign", "pdays", "previous", "emp.var.rate", "cons.price.idx", "cons.conf.idx", "euribor3m", "nr.employed")], columns = 1:10, 
                  lower = list(continuous = wrap("points", alpha = 0.5, color = "darkred", size=0.5)),
                  title='Scatterplot', axisLabels='none')
 ```
-
-
-

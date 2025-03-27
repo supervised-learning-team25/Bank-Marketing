@@ -25,10 +25,13 @@ knitr::opts_chunk$set(echo = TRUE)
 library(DT)
 library(visdat)
 library(readr)
+library(skimr)
 library(ggplot2)
 library(GGally)
 library(corrplot)
 library(plotly)
+library(Hmisc)
+library(patchwork)
 ```
 
 ```{r child="Introduction.Rmd" } 
