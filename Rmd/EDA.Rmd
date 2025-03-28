@@ -52,7 +52,6 @@ train <- train %>% select(-X)
 ```
 
 ```{r echo=FALSE}
-vis_dat(train)
 skim(train)
 ```
 
