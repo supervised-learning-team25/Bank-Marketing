@@ -6,8 +6,11 @@ output:
   html_document:
     theme: cerulean
     toc: true
+    toc_depth: 3
     number_sections: true
-    toc_float: true
+    toc_float:
+      collapsed: true
+    css: "../docs/styles.css"
 ---
 
 _Authors_:

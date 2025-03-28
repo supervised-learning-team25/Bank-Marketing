@@ -35,14 +35,14 @@ attach(train)
 15. `previous` (Integer): number of contacts performed before this campaign and for this client
 16. `poutcome` (Categorical): outcome of the previous marketing campaign (categorical: 'failure','nonexistent','success')
 
-#### Social and economic context attributes
+#### Social and economic context attributes:
 17. `emp.var.rate` (Integer): employment variation rate - quarterly indicator
 18. `cons.price.idx` (Integer): consumer price index - monthly indicator
 19. `cons.conf.idx` (Integer): consumer confidence index - monthly indicator
 20. `euribor3m` (Integer): euribor 3 month rate - daily indicator
 21. `nr.employed` (Integer): number of employees - quarterly indicator
 
-#### Output variable (desired target)
+#### Output variable (desired target):
 22. `subscribed` (Binary): has the client subscribed a term deposit?
 
 Source: [UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/222/bank+marketing)
@@ -76,66 +76,164 @@ plot_ly(train, x = education, y = age, type = 'box', color = education)
 
 Instead, with the education level, people that are more educated are younger than people that are less educated. This is probably due to the fact that people that are more educated spend more time studying and less time working.
 
-```{r warning=FALSE}
-propResp(train, age, "Age", 4, 30)
+#### Client data
+
+<div class="hscroll-plot">
+```{r warning=FALSE, echo=FALSE, fig.width=7, fig.height=5}
+ageVar <- propResp(train, age, "Age", 4, 30)
+jobVar <- freqRespOnSubscribed(train, job, "Job")
+eduVar <- freqRespOnSubscribed(train, education, "Education")
 ```
 
-The age distribution is right-skewed, with a peak around 30-40 years old. The proportion of people that have subscribed is higher among people that are older than 60 years old. This is probably due to the fact that older people have more money and are more likely to subscribe.
-
-```{r}
-freqRespOnSubscribed(train, job, "Job")
+<div class='plot-container'>
+```{r warning=FALSE, echo=FALSE}
+print(ageVar)
 ```
+<div class="plot-text">
+<strong>Distribution of Age</strong><br>
+The age distribution is right-skewed, with a peak around 30–40 years old.  The proportion of people that have subscribed is higher among those over 60.This may be due to greater financial stability in older age groups.
+</div>
+</div>
 
+<div class='plot-container'>
+```{r warning=FALSE, echo=FALSE}
+print(jobVar)
+```
+<div class="plot-text">
+<strong>Distribution of Job</strong><br>
 The distribution of the occupation is not uniform, with the majority of people that are admin. The proportion of people that have subscribed is among the higest between all the occupation. This is probably due to the fact that people that are admin have a higher income and are more likely to subscribe. While student and retired people have a higher proportion of subscription, this explain that we saw in the previous plot that the older people and the people with higher education level are more likely to subscribe.
+</div>
+</div>
 
-```{r}
-freqRespOnSubscribed(train, education, "Education")
+<div class='plot-container'>
+```{r warning=FALSE, echo=FALSE}
+print(eduVar)
 ```
-
+<div class="plot-text">
+<strong>Distribution of Education</strong><br>
 About Education Level, we can see that the distribution of the education level is not uniform, with the majority of people that have a university degree. The proportion of people that have a university degree and that have subscribed is among the higest between all the education level. 
 This is probably due to the fact that people that have a university degree have a higher income and are more likely to subscribe.
+</div>
+</div>
+</div>
 
-```{r}
-freqRespOnSubscribed(train, previous, "Number of calls previous campain")
-freqRespOnSubscribed(train, poutcome, "Poutcome")
+#### Previous Campaign Data
+
+<div class="hscroll-plot" style="height: 450px;">
+```{r warning=FALSE, echo=FALSE, fig.width=7, fig.height=5}
+previousVar <- freqRespOnSubscribed(train, previous, "Number of calls previous campain")
+poutcomeVar <- freqRespOnSubscribed(train, poutcome, "Poutcome")
 ```
 
+<div class='plot-container'>
+```{r warning=FALSE, echo=FALSE}
+print(previousVar)
+```
+</div>
+<div class='plot-container'>
+```{r warning=FALSE, echo=FALSE}
+print(poutcomeVar)
+```
+</div>
+</div>
+<div class="plot-text">
+<strong>Distribution of Contacts</strong><br>
 About previous campaign, while most clients were not previously contacted, the success rate is visibly higher among those who were previously contacted more than once or had a successful prior outcome. This suggests that prior engagement is positively associated with subscription, but they are a small part of sample.
+</div>
 
-```{r}
-freqRespOnSubscribed(train, day_of_week, "Day of Week", c("mon", "tue", "wed", "thu", "fri"))
-freqRespOnSubscribed(train, month, "Month", c("mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"))
+#### Temporal data
+
+<div class="hscroll-plot">
+```{r warning=FALSE, echo=FALSE, fig.width=7, fig.height=5}
+dayVar <- freqRespOnSubscribed(train, day_of_week, "Day of Week", c("mon", "tue", "wed", "thu", "fri"))
+monthVar <- freqRespOnSubscribed(train, month, "Month", c("mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"))
+durationVar <- propResp(train, duration, "Duration", 4, 100)
 ```
 
-The distribution of the last contact day of the week is uniform, with the majority of people that have been contacted on Thursday. The proportion of people that have subscribed is among the higest when the last contact day of the week is on the middle of week.  
+<div class='plot-container'>
+```{r warning=FALSE, echo=FALSE}
+print(dayVar)
+```
+<div class="plot-text">
+<strong>Distribution of Days of Week</strong><br>
+The distribution of the last contact day of the week is uniform, with the majority of people that have been contacted on Thursday. The proportion of people that have subscribed is among the higest when the last contact day of the week is on the middle of week.
+</div>
+</div>
+
+<div class='plot-container'>
+```{r warning=FALSE, echo=FALSE}
+print(monthVar)
+```
+<div class="plot-text">
+<strong>Distribution of Months</strong><br>
 Instead, the distribution of the last contact month of the year is not uniform, with the majority of people that have been contacted in May. The proportion of people that have subscribed is among the higest when the last contact month of the year is in March, December, September and October. This is probably due to the fact that people are more likely to subscribe when they have more money and not during the summer.
+</div>
+</div>
 
-```{r warning=FALSE}
-propResp(train, duration, "Duration", 4, 100)
+<div class='plot-container'>
+```{r warning=FALSE, echo=FALSE}
+print(durationVar)
 ```
-
+<div class="plot-text">
+<strong>Distribution of Duration</strong><br>
 The duration of the last contact is right-skewed, with a peak around 0-100 seconds. The proportion of people that have subscribed is higher among people that have been contacted for a longer duration. This is probably due to the fact that people that have been contacted for a longer duration are more interested to subscribe.
+</div>
+</div>
+</div>
 
-```{r}
-propResp(train, cons.price.idx, "consumer price index", 2)
-```
+#### Social and economic data
 
-The proportion of people that have subscribed is higher when the CPI is lower than 93. This is probably due to the fact that people when the CPI is lower have more money and are more likely to subscribe.
+<div class="hscroll-plot">
+```{r warning=FALSE, echo=FALSE, fig.width=7, fig.height=5}
+cpiVar <- propResp(train, cons.price.idx, "Consumer Price Index", 2)
 
-```{r}
 train$emp_cat <- ifelse(train$emp.var.rate < 0, "Negative", "Positive or Zero")
-freqRespOnSubscribed(train, emp_cat, "Employment Variation (±)")
+evrVar <- freqRespOnSubscribed(train, emp_cat, "Employment Variation (±)")
+
+cciVar <- propResp(train, cons.conf.idx, "Consumer Confidence Index", 3)
+eb3Var <- propResp(train, euribor3m, "Euribor 3 month rate", 3)
 ```
 
+<div class='plot-container'>
+```{r warning=FALSE, echo=FALSE}
+print(cpiVar)
+```
+<div class="plot-text">
+<strong>Distribution of Days of Consumer Price Index</strong><br>
+The proportion of people that have subscribed is higher when the CPI is lower than 93. This is probably due to the fact that people when the CPI is lower have more money and are more likely to subscribe.
+</div>
+</div>
+
+<div class='plot-container'>
+```{r warning=FALSE, echo=FALSE}
+print(evrVar)
+```
+<div class="plot-text">
+<strong>Distribution of Employment Variation</strong><br>
 The distribution of the employment variation rate is not uniform, with the majority of people that have a positive or zero employment variation rate. The proportion of people that have subscribed is among the higest when the employment variation rate is negative. This is probably due to the fact that people are more propensity to subscribe when they are in recession.
+</div>
+</div>
 
-```{r}
-propResp(train, cons.conf.idx, "consumer confidence index", 3)
-propResp(train, euribor3m, "euribor 3 month rate", 3)
+<div class='plot-container'>
+```{r warning=FALSE, echo=FALSE}
+print(cciVar)
 ```
+<div class="plot-text">
+<strong>Distribution of Consumer Confidence Index</strong><br>
+The proportion of people that have subscribed is higher when the consumer confidence index is higher than -40. This is probably due to the fact that people when the consumer confidence index is higher have more money and have more propensity to subscribe.
+</div>
+</div>
 
-The proportion of people that have subscribed is higher when the consumer confidence index is higher than -40. This is probably due to the fact that people when the consumer confidence index is higher have more money and have more propensity to subscribe.  
+<div class='plot-container'>
+```{r warning=FALSE, echo=FALSE}
+print(eb3Var)
+```
+<div class="plot-text">
+<strong>Distribution of Euribor 3 month rate</strong><br>
 When considering the Euribor rate, one might think that a lower Euribor would result in a decline in savings rate since most European banks align their deposit interest rate offers with ECB indexes, particularly with the three month Euribor. Still, as we see, this plot shows the opposite, with a lower Euribor corresponding to a higher probability for deposit subscription, and the same probability decreasing along with the increase of the three month Euribor.
+</div>
+</div>
+</div>
 
 ```{r}
 ggpairs(train[, c("age", "duration", "campaign", "pdays", "previous", "emp.var.rate", "cons.price.idx", "cons.conf.idx", "euribor3m", "nr.employed")], columns = 1:10, 

@@ -36,8 +36,7 @@ freqRespOnSubscribed <- function(train, x, nameVariable, ord = FALSE) {
     theme_minimal() +
     theme(axis.text.x = element_text(angle = 90, hjust = 1))
   
-  (FreqGraph / RespGraph) +
-    plot_layout(axis_titles = 'collect')
+  return((FreqGraph / RespGraph) + plot_layout(axis_titles = 'collect'))
 }
 
 propResp <- function(train, x, nameVariable, binW, binsHistogram = NULL) {
