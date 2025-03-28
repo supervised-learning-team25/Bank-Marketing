@@ -2,7 +2,7 @@
 title: "Bank-Marketing"
 knit: (function(input, ...) {rmarkdown::render(input, output_file="../docs/index.html")})
 
-output: 
+output:
   html_document:
     theme: cerulean
     toc: true

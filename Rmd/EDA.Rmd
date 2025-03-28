@@ -1,21 +1,20 @@
 ## Exploratory Data Analysis
 
-```{r, include=FALSE}
+```{r echo=FALSE}
 source("../R/EDA_functions.R")
 ```
 
-```{r, include=FALSE}
+```{r echo=FALSE}
 train <- read.csv("../data/raw/bank_marketing_train.csv")
-```
-
-```{r}
-datatable(head(train, 100), options = list(scrollX = TRUE))
-str(train)
 attach(train)
 ```
 
+```{r echo=FALSE}
+datatable(head(train, 100), options = list(scrollX = TRUE))
+```
+
 ### Variable descriptions
-#### Bank client data:
+#### Bank client data: {-}
 1. `X` (Integer): id of customer
 2. `age` (Integer): age of the customer
 3. `job` (Categorical): occupation
@@ -29,54 +28,84 @@ attach(train)
 11. `day_of_week` (Integer): last contact day of the week
 12. `duration` (Integer): last contact duration, in seconds (numeric). Important note: this attribute highly affects the output target (e.g., if duration=0 then y='no'). Yet, the duration is not known before a call is performed. Also, after the end of the call y is obviously known. Thus, this input should only be included for benchmark purposes and should be discarded if the intention is to have a realistic predictive model
 
-#### Other attributes:
+#### Other attributes: {-}
 13. `campaign` (Integer): number of contacts performed during this campaign and for this client (numeric, includes last contact)
 14. `pdays` (Integer): number of days that passed by after the client was last contacted from a previous campaign (numeric; -1 means client was not previously contacted)
 15. `previous` (Integer): number of contacts performed before this campaign and for this client
 16. `poutcome` (Categorical): outcome of the previous marketing campaign (categorical: 'failure','nonexistent','success')
 
-#### Social and economic context attributes:
+#### Social and economic context attributes: {-}
 17. `emp.var.rate` (Integer): employment variation rate - quarterly indicator
 18. `cons.price.idx` (Integer): consumer price index - monthly indicator
 19. `cons.conf.idx` (Integer): consumer confidence index - monthly indicator
 20. `euribor3m` (Integer): euribor 3 month rate - daily indicator
 21. `nr.employed` (Integer): number of employees - quarterly indicator
 
-#### Output variable (desired target):
+#### Output variable (desired target): {-}
 22. `subscribed` (Binary): has the client subscribed a term deposit?
 
 Source: [UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/222/bank+marketing)
 
-```{r}
+#### More details {-}
+```{r echo=FALSE}
+train <- train %>% select(-X)
+```
+
+```{r echo=FALSE}
 vis_dat(train)
 skim(train)
 ```
 
 ### Analysis of distributions
 
-```{r}
-plot_ly(train, x = subscribed, type = 'histogram')
+```{r warning=FALSE, echo=FALSE}
+plot_ly(train, x = ~subscribed, type = 'histogram') %>%
+  layout(title = "Number of subscribed")
 ```
 
 Firstly we see that this dataset are **unbaleanced**, with the majority of people that have not subscribed.
 
-```{r}
+#### Correlation and Pairwise Relationships {-}
+
+<div class="hscroll-plot" style="height: 450px;">
+<div class='plot-container'>
+```{r warning=FALSE, echo=FALSE}
 corrplot(cor(train[, c("age", "duration", "campaign", "pdays", "previous", "emp.var.rate", "cons.price.idx", "cons.conf.idx", "euribor3m", "nr.employed")]), method="pie")
 ```
+</div>
 
-```{r warning=FALSE}
-plot_ly(train, x = job, y = age, type = 'box', color = job)
+<div class='plot-container'>
+```{r warning=FALSE, echo=FALSE}
+ggpairs(train[, c("age", "duration", "campaign", "pdays", "previous", "emp.var.rate", "cons.price.idx", "cons.conf.idx", "euribor3m", "nr.employed")], columns = 1:10, 
+                 lower = list(continuous = wrap("points", alpha = 0.5, color = "darkred", size=0.5)),
+                 title='Scatterplot', axisLabels='none')
+```
+</div>
+</div>
+
+#### Distribution of Age across Different Education Levels and Jobs {-}
+
+```{r warning=FALSE, echo=FALSE}
+plot_ly(train, x = ~job, y = ~age, type = 'box', color = ~job) %>%
+  layout(
+    title = "Box plot: Age-Job",
+    yaxis = list(title = "Age")
+  )
 ```
 
 As we can see, the age distribution is not similar across different job categories, exspecially for student that are younger than other categories and for retired that are older than other categories and have a wider range of ages, with some low value that may be disabled people.
 
-```{r}
-plot_ly(train, x = education, y = age, type = 'box', color = education)
+```{r warning=FALSE, echo=FALSE}
+plot_ly(train, x = ~education, y = ~age, type = 'box', color = ~education) %>%
+  layout(
+    title = "Box plot: Age-Education",
+    yaxis = list(title = "Age")
+  )
 ```
 
 Instead, with the education level, people that are more educated are younger than people that are less educated. This is probably due to the fact that people that are more educated spend more time studying and less time working.
 
-#### Client data
+#### Client data {-}
 
 <div class="hscroll-plot">
 ```{r warning=FALSE, echo=FALSE, fig.width=7, fig.height=5}
@@ -117,7 +146,7 @@ This is probably due to the fact that people that have a university degree have 
 </div>
 </div>
 
-#### Previous Campaign Data
+#### Previous Campaign Data {-}
 
 <div class="hscroll-plot" style="height: 450px;">
 ```{r warning=FALSE, echo=FALSE, fig.width=7, fig.height=5}
@@ -141,7 +170,7 @@ print(poutcomeVar)
 About previous campaign, while most clients were not previously contacted, the success rate is visibly higher among those who were previously contacted more than once or had a successful prior outcome. This suggests that prior engagement is positively associated with subscription, but they are a small part of sample.
 </div>
 
-#### Temporal data
+#### Temporal data {-}
 
 <div class="hscroll-plot">
 ```{r warning=FALSE, echo=FALSE, fig.width=7, fig.height=5}
@@ -181,7 +210,7 @@ The duration of the last contact is right-skewed, with a peak around 0-100 secon
 </div>
 </div>
 
-#### Social and economic data
+#### Social and economic data {-}
 
 <div class="hscroll-plot">
 ```{r warning=FALSE, echo=FALSE, fig.width=7, fig.height=5}
@@ -235,8 +264,11 @@ When considering the Euribor rate, one might think that a lower Euribor would re
 </div>
 </div>
 
-```{r}
-ggpairs(train[, c("age", "duration", "campaign", "pdays", "previous", "emp.var.rate", "cons.price.idx", "cons.conf.idx", "euribor3m", "nr.employed")], columns = 1:10, 
-                 lower = list(continuous = wrap("points", alpha = 0.5, color = "darkred", size=0.5)),
-                 title='Scatterplot', axisLabels='none')
-```
+### Conclusion
+In conclusion, the analysis reveals several key insights about the factors influencing the likelihood of subscription in this dataset. First, the data is unbalanced, with the majority of individuals not subscribing to the service. Age plays a significant role, with older individuals, particularly those over 60, being more likely to subscribe, potentially due to greater financial stability. Occupation and education level also appear to influence subscription, with people in administrative roles and those with higher education showing higher subscription rates, likely due to higher income and greater financial stability.
+
+Previous engagement with the campaign positively correlates with subscription, especially for individuals contacted multiple times or who had a successful outcome in prior campaigns. Additionally, the timing of the contact seems to affect subscription rates, with the highest rates observed in March, December, September, and October, and a higher likelihood of subscription when the contact duration is longer.
+
+Economic factors, such as the Consumer Price Index (CPI), employment variation rate, consumer confidence index, and Euribor rate, all show significant associations with subscription rates. A lower CPI, negative employment variation rate, and a higher consumer confidence index tend to be linked to higher subscription rates, reflecting the impact of financial conditions on consumer behavior.
+
+Overall, the analysis suggests that financial stability, previous engagement, and certain economic factors are key drivers of subscription, while factors like age, occupation, and education level also influence the likelihood of subscribing.
