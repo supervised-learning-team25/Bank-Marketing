@@ -1,2 +1,2 @@
 ## Introduction {-}
-Here we will write some information about the project.
+In this project, we analyze data from a Portuguese banking institution’s direct marketing campaigns to identify key factors influencing customer subscription to term deposits. The dataset includes client demographics, previous campaign interactions, and economic indicators. Our goal is to develop insights that will enhance the effectiveness of future marketing strategies. By applying supervised learning techniques, we aim to predict customer responses and optimize outreach efforts for better engagement and conversion rates.

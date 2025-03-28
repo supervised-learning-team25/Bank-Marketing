@@ -1,6 +1,10 @@
 ## Exploratory Data Analysis
 
 ```{r, include=FALSE}
+source("../R/EDA_functions.R")
+```
+
+```{r, include=FALSE}
 train <- read.csv("../data/raw/bank_marketing_train.csv")
 ```
 
@@ -48,6 +52,8 @@ vis_dat(train)
 skim(train)
 ```
 
+### Analysis of distributions
+
 ```{r}
 plot_ly(train, x = subscribed, type = 'histogram')
 ```
@@ -58,7 +64,7 @@ Firstly we see that this dataset are **unbaleanced**, with the majority of peopl
 corrplot(cor(train[, c("age", "duration", "campaign", "pdays", "previous", "emp.var.rate", "cons.price.idx", "cons.conf.idx", "euribor3m", "nr.employed")]), method="pie")
 ```
 
-```{r}
+```{r warning=FALSE}
 plot_ly(train, x = job, y = age, type = 'box', color = job)
 ```
 
@@ -70,270 +76,66 @@ plot_ly(train, x = education, y = age, type = 'box', color = education)
 
 Instead, with the education level, people that are more educated are younger than people that are less educated. This is probably due to the fact that people that are more educated spend more time studying and less time working.
 
+```{r warning=FALSE}
+propResp(train, age, "Age", 4, 30)
+```
+
+The age distribution is right-skewed, with a peak around 30-40 years old. The proportion of people that have subscribed is higher among people that are older than 60 years old. This is probably due to the fact that older people have more money and are more likely to subscribe.
+
 ```{r}
-ord_edu <- train %>% count(education) %>%arrange(n)%>% pull(education)
+freqRespOnSubscribed(train, job, "Job")
+```
 
+The distribution of the occupation is not uniform, with the majority of people that are admin. The proportion of people that have subscribed is among the higest between all the occupation. This is probably due to the fact that people that are admin have a higher income and are more likely to subscribe. While student and retired people have a higher proportion of subscription, this explain that we saw in the previous plot that the older people and the people with higher education level are more likely to subscribe.
 
-eduResp <- ggplot(train, aes(x = factor(education, levels = ord_edu), fill = factor(subscribed))) +
-  geom_bar(position = "fill") +
-  coord_flip() +
-  ylab("Proportion") +
-  scale_fill_discrete(name = "Subscribed") +
-  xlab("Education Level") +
-  geom_hline(yintercept = 0.5, linetype = "dashed", color = "red") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
-
-eduFreq <- ggplot(as.data.frame(table(education)/sum(table(education))*100), aes(x = reorder(education, Freq), y = Freq)) +
-  geom_bar(stat = "identity", color = "gray",  fill = "steelblue", alpha=0.9) +  
-  coord_flip() +
-  labs(title = "Education", x = "Education Level", y = "Count") +
-  theme_minimal()
-
-(eduFreq / eduResp)+
-  plot_layout(axis_titles = 'collect')
+```{r}
+freqRespOnSubscribed(train, education, "Education")
 ```
 
 About Education Level, we can see that the distribution of the education level is not uniform, with the majority of people that have a university degree. The proportion of people that have a university degree and that have subscribed is among the higest between all the education level. 
 This is probably due to the fact that people that have a university degree have a higher income and are more likely to subscribe.
 
 ```{r}
-
-ordine_poutcome <- train %>% count(poutcome) %>% arrange(n) %>%
-  pull(poutcome)
-
-poutcomeFreq <- ggplot(as.data.frame(table(train$poutcome) / length(train$poutcome) * 100),
-                       aes(x = reorder(Var1, Freq), y = Freq, fill = Var1)) +
-  geom_bar(stat = "identity") +
-  coord_flip() +
-  labs(
-    title = "Distribution of Poutcome",
-    x = "Outcome previous campaign",
-    y = "Percentage (%)"
-  ) +
-  scale_fill_brewer(palette = "Set2") +
-  theme_minimal() +
-  theme(legend.position = "none")
-
-poutcomeResp <- ggplot(train, aes(x = factor(poutcome, levels = ordine_poutcome), fill = factor(subscribed))) +
-  geom_bar(position = "fill") +
-  coord_flip() +
-  ylab("Proportion") +
-  scale_fill_discrete(name = "Poutcome") +
-  xlab("Outcome previous campaign") +
-  geom_hline(yintercept = 0.5, linetype = "dashed", color = "red") +
-  theme_minimal()
-
-
-ordine_previous <- train %>% count(previous) %>% arrange(n) %>%
-  pull(previous) 
-
-prevFreq <- ggplot(as.data.frame(table(train$previous)/length(train$previous)*100), aes(x = reorder(Var1,Freq), y = Freq)) +
-  geom_bar(stat = "identity",color='gray', fill = "steelblue") +
-  coord_flip() +
-  labs(title = "Distribution of Previous",
-       x = "Number of calls previous campain",
-       y = "Percentage (%)")+
-  theme_minimal()
-
-prevResp <- ggplot(train, aes(x = factor(previous, levels = ordine_previous), fill = factor(subscribed))) +
-  geom_bar(position = "fill") +
-  coord_flip() +
-  ylab("Proportion") +
-  scale_fill_discrete(name = "Previous") +
-  xlab("Number of calls previous campain") +
-  geom_hline(yintercept = 0.5, linetype = "dashed", color = "red") +
-  theme_minimal()
-
-(poutcomeFreq / poutcomeResp) +
-  plot_layout(axis_titles = 'collect')
-
-(prevFreq / prevResp) +
-  plot_layout(axis_titles = 'collect')
-
+freqRespOnSubscribed(train, previous, "Number of calls previous campain")
+freqRespOnSubscribed(train, poutcome, "Poutcome")
 ```
 
 About previous campaign, while most clients were not previously contacted, the success rate is visibly higher among those who were previously contacted more than once or had a successful prior outcome. This suggests that prior engagement is positively associated with subscription, but they are a small part of sample.
 
-
-```{r warning=FALSE}
-durHist <- ggplot(train, aes(x=duration))+
-  geom_histogram(aes(y=..density..), bins = 100, color = "gray", fill = "steelblue", alpha = 0.9) +
-  geom_rug() +
-  geom_density(color = "red", size = 1)+
-  theme_minimal()
-
-durResp <- ggplot(train, aes(duration)) + 
-  geom_histogram(binwidth=4,position="fill",aes(fill=factor(subscribed)))+
-  scale_fill_discrete(name="Subscribed")+ylab("proportion")+
-  geom_hline(yintercept=0.5)+
-  theme_minimal()
-
-(durHist / durResp) +
-  plot_layout(axis_titles = 'collect')
-
-```
-
-The duration of the last contact is right-skewed, with a peak around 0-100 seconds. The proportion of people that have subscribed is higher among people that have been contacted for a longer duration. This is probably due to the fact that people that have been contacted for a longer duration are more interested to subscribe.
-
-```{r warning=FALSE}
-
-ageHist <- ggplot(train, aes(x=age))+
-  geom_histogram(aes(y=..density..), bins = 30, color = "gray", fill = "steelblue", alpha = 0.9) +
-  geom_rug() +
-  geom_density(color = "red", size = 1)+
-  theme_minimal()
-
-ageResp <- ggplot(train, aes(age)) + geom_histogram(binwidth=4,position="fill",aes(fill=factor(subscribed)))+scale_fill_discrete(name="Subscribed")+ylab("proportion")+geom_hline(yintercept=0.5)
-
-(ageHist / ageResp) +
-  plot_layout(axis_titles = 'collect')
-
-```
-
-The age distribution is right-skewed, with a peak around 30-40 years old. The proportion of people that have subscribed is higher among people that are older than 60 years old. This is probably due to the fact that older people have more money and are more likely to subscribe.
-
 ```{r}
-ordine_job <- train %>% count(job) %>%arrange(n)%>% pull(job)
-
-
-jobFreq <- ggplot(as.data.frame(table(train$job) / length(train$job) * 100),
-                   aes(x = reorder(Var1, Freq), y = Freq, fill = Var1)) +
-  geom_bar(stat = "identity", color = "gray",  fill = "steelblue", alpha=0.9) +
-  coord_flip() +
-  labs(
-    title = "Distribution of job",
-    x = "Occupation",
-    y = "Percentage (%)"
-  ) +
-  theme_minimal() +
-  theme(legend.position = "none")
-
-jobResp <- ggplot(train, aes(x = factor(job, levels = ordine_job), fill = factor(subscribed))) +
-  geom_bar(position = "fill") +
-  coord_flip() +
-  labs(
-    title = "Proportion by subscribed",
-    x = "Occupation",
-    y = "Proportion"
-  ) +
-  scale_fill_discrete(name = "Subscribed") +
-  geom_hline(yintercept = 0.5, linetype = "dashed", color = "red") +
-  theme_minimal()
-
-(jobFreq / jobResp) +
-  plot_layout(axis_titles = 'collect')
-```
-
-The distribution of the occupation is not uniform, with the majority of people that are admin. The proportion of people that have subscribed is among the higest between all the occupation. This is probably due to the fact that people that are admin have a higher income and are more likely to subscribe. While student and retired people have a higher proportion of subscription, this explain that we saw in the previous plot that the older people and the people with higher education level are more likely to subscribe.
-
-```{r}
-
-ggplot(train, aes(cons.price.idx)) + geom_histogram(binwidth=2,position="fill",aes(fill=factor(subscribed)))+scale_fill_discrete(name="Subscribed")+ylab("proportion")+geom_hline(yintercept=0.5)
-
-```
-
-The proportion of people that have subscribed is higher when the CPI is lower than 93. This is probably due to the fact that people when the CPI is lower have more money and are more likely to subscribe.
-
-```{r}
-
-ggplot(train, aes(cons.conf.idx)) + geom_histogram(binwidth=3,position="fill",aes(fill=factor(subscribed)))+scale_fill_discrete(name="Subscribed")+ylab("proportion")+geom_hline(yintercept=0.5)
-
-ggplot(train, aes(euribor3m)) + geom_histogram(binwidth=3,position="fill",aes(fill=factor(subscribed)))+scale_fill_discrete(name="Subscribed")+ylab("proportion")+geom_hline(yintercept=0.5)
-
-```
-
-The proportion of people that have subscribed is higher when the consumer confidence index is higher than -40. This is probably due to the fact that people when the consumer confidence index is higher have more money and have more propensity to subscribe.  
-When considering the Euribor rate, one might think that a lower Euribor would result in a decline in savings rate since most European banks align their deposit interest rate offers with ECB indexes, particularly with the three month Euribor. Still, as we see, this plot shows the opposite, with a lower Euribor corresponding to a higher probability for deposit subscription, and the same probability decreasing along with the increase of the three month Euribor.
-
-```{r}
-
-train$day_of_week <- factor(train$day_of_week,
-                            levels = c("mon", "tue", "wed", "thu", "fri"),
-                            ordered = TRUE)
-
-dayFreq <- ggplot(as.data.frame(table(train$day_of_week)/length(train$day_of_week)*100), aes(x = Var1, y = Freq)) +
-  geom_bar(stat = "identity", fill = "steelblue") +
-  coord_flip() +
-  labs(title = "Distribution of Day of Week",
-       x = "Last Contact Day of Week",
-       y = "Percentage (%)")+
-  theme_minimal()
-
-dayResp <- ggplot(train, aes(x = day_of_week, fill = factor(subscribed))) +
-  geom_bar(position = "fill") +
-  coord_flip() +
-  ylab("Proportion") +
-  scale_fill_discrete(name = "Subscribed") +
-  xlab("Last Contact Day of Week") +
-  geom_hline(yintercept = 0.5, linetype = "dashed", color = "red") +
-  theme_minimal() 
-
-(dayFreq / dayResp) +
-  plot_layout(axis_titles = 'collect')
-
-
-ordine_month<-factor(train$month, 
-                     levels = c("mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"), 
-                     ordered = TRUE)
-
-monthFreq <- ggplot(as.data.frame(table(ordine_month)/length(ordine_month)*100), aes(x = ordine_month, y = Freq)) +
-  geom_bar(stat = "identity",color='gray', fill = "steelblue") +
-  coord_flip() +
-  labs(title = "Distribution of month",
-       x = "Last contact month of year",
-       y = "Percentage (%)")+
-  theme_minimal()
-
-monthResp <- ggplot(train, aes(x = ordine_month, fill = factor(subscribed))) +
-  geom_bar(position = "fill") +
-  coord_flip() +
-  ylab("Proportion") +
-  scale_fill_discrete(name = "month") +
-  xlab("Last contact month of year") +
-  geom_hline(yintercept = 0.5, linetype = "dashed", color = "red") +
-  theme_minimal()
-
-(monthFreq / monthResp) +
-  plot_layout(axis_titles = 'collect')
-
+freqRespOnSubscribed(train, day_of_week, "Day of Week", c("mon", "tue", "wed", "thu", "fri"))
+freqRespOnSubscribed(train, month, "Month", c("mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"))
 ```
 
 The distribution of the last contact day of the week is uniform, with the majority of people that have been contacted on Thursday. The proportion of people that have subscribed is among the higest when the last contact day of the week is on the middle of week.  
 Instead, the distribution of the last contact month of the year is not uniform, with the majority of people that have been contacted in May. The proportion of people that have subscribed is among the higest when the last contact month of the year is in March, December, September and October. This is probably due to the fact that people are more likely to subscribe when they have more money and not during the summer.
 
-```{r}
-
-train$emp_cat <- ifelse(train$emp.var.rate < 0, "Negative", "Positive or Zero")
-
-
-ordine_emp <- train %>% count(emp_cat) %>% arrange(n) %>%
-  pull(emp_cat)
-
-
-empFreq <- ggplot(as.data.frame(table(ordine_emp)/length(ordine_emp)*100), aes(x = ordine_emp, y = Freq)) +
-  geom_bar(stat = "identity",color='gray', fill = "steelblue") +
-  coord_flip() +
-  labs(title = "Distribution of Employment Variation (±)",
-       x = "Employment Variation (±)",
-       y = "Percentage (%)")+
-  theme_minimal()
-
-empResp <- ggplot(train, aes(x = factor(emp_cat, levels = ordine_emp), fill = factor(subscribed))) +
-  geom_bar(position = "fill") +
-  coord_flip() +
-  ylab("Proportion") +
-  scale_fill_discrete(name = "emp_cat") +
-  xlab("Employment Variation (±)") +
-  geom_hline(yintercept = 0.5, linetype = "dashed", color = "red") +
-  theme_minimal()
-
-(empFreq / empResp) +
-  plot_layout(axis_titles = 'collect')
-
+```{r warning=FALSE}
+propResp(train, duration, "Duration", 4, 100)
 ```
 
-The distribution of the employment variation rate is uniform. The proportion of people that have subscribed is among the higest when the employment variation rate is negative. This is probably due to the fact that people are more propensity to subscribe when they are in recession.
+The duration of the last contact is right-skewed, with a peak around 0-100 seconds. The proportion of people that have subscribed is higher among people that have been contacted for a longer duration. This is probably due to the fact that people that have been contacted for a longer duration are more interested to subscribe.
+
+```{r}
+propResp(train, cons.price.idx, "consumer price index", 2)
+```
+
+The proportion of people that have subscribed is higher when the CPI is lower than 93. This is probably due to the fact that people when the CPI is lower have more money and are more likely to subscribe.
+
+```{r}
+train$emp_cat <- ifelse(train$emp.var.rate < 0, "Negative", "Positive or Zero")
+freqRespOnSubscribed(train, emp_cat, "Employment Variation (±)")
+```
+
+The distribution of the employment variation rate is not uniform, with the majority of people that have a positive or zero employment variation rate. The proportion of people that have subscribed is among the higest when the employment variation rate is negative. This is probably due to the fact that people are more propensity to subscribe when they are in recession.
+
+```{r}
+propResp(train, cons.conf.idx, "consumer confidence index", 3)
+propResp(train, euribor3m, "euribor 3 month rate", 3)
+```
+
+The proportion of people that have subscribed is higher when the consumer confidence index is higher than -40. This is probably due to the fact that people when the consumer confidence index is higher have more money and have more propensity to subscribe.  
+When considering the Euribor rate, one might think that a lower Euribor would result in a decline in savings rate since most European banks align their deposit interest rate offers with ECB indexes, particularly with the three month Euribor. Still, as we see, this plot shows the opposite, with a lower Euribor corresponding to a higher probability for deposit subscription, and the same probability decreasing along with the increase of the three month Euribor.
 
 ```{r}
 ggpairs(train[, c("age", "duration", "campaign", "pdays", "previous", "emp.var.rate", "cons.price.idx", "cons.conf.idx", "euribor3m", "nr.employed")], columns = 1:10, 
