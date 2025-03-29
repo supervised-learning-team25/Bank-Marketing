@@ -55,6 +55,13 @@ train <- train %>% select(-X)
 skim(train)
 ```
 
+The dataset includes 21 variables and 32,950 rows, with **no missing values**.  
+Categorical variables like **job** and **education** show good diversity, while **default**, **loan**, and **housing** have only 3 unique values.
+
+Among numeric variables, **age** has a fairly normal distribution (*mean ≈ 40*, *sd ≈ 10*), while **duration** and **pdays** are highly skewed, with extreme values up to 4918 and 999 respectively.  
+Some variables (e.g., **campaign**, **previous**) have a low median but long tails, indicating that most observations are clustered at low values.    
+Macroeconomic variables such as **emp.var.rate**, **euribor3m**, and **nr.employed** are more stable, with tight interquartile ranges, suggesting consistent economic conditions during data collection.
+
 ### Analysis of distributions
 
 ```{r warning=FALSE, echo=FALSE}
@@ -66,11 +73,16 @@ Firstly we see that this dataset are **unbaleanced**, with the majority of peopl
 
 #### Correlation and Pairwise Relationships {-}
 
-<div class="hscroll-plot" style="height: 450px;">
+<div class="hscroll-plot">
 <div class='plot-container'>
 ```{r warning=FALSE, echo=FALSE}
 corrplot(cor(train[, c("age", "duration", "campaign", "pdays", "previous", "emp.var.rate", "cons.price.idx", "cons.conf.idx", "euribor3m", "nr.employed")]), method="pie")
 ```
+<div class="plot-text">
+<strong>Correlation Matrix</strong><br>
+The correlation matrix reveals clear patterns among the numerical variables. Notably, <strong>euribor3m</strong>, <strong>nr.employed</strong>, and <strong>emp.var.rate</strong> are strongly positively correlated with each other, these suggest these variables capture similar information about the economic environment. This should be taken into account in predictive modeling, as using them together could lead to <strong>multicollinearity</strong>.  
+In contrast, variables like <strong>campaign</strong>, <strong>pdays</strong>, and <strong>previous</strong> show very weak correlations with most other features, indicating they may contribute more independently to the model.
+</div>
 </div>
 
 <div class='plot-container'>
@@ -79,6 +91,12 @@ ggpairs(train[, c("age", "duration", "campaign", "pdays", "previous", "emp.var.r
                  lower = list(continuous = wrap("points", alpha = 0.5, color = "darkred", size=0.5)),
                  title='Scatterplot', axisLabels='none')
 ```
+<div class="plot-text">
+<strong>Scatterplot Matrix</strong><br>
+The scatterplot matrix confirms the <strong>distribution shape and linearity</strong> of relationships among the numeric variables.  
+Several variables, such as <strong>duration</strong> and <strong>pdays</strong>, show <strong>highly skewed distributions</strong>, which could influence model performance and may benefit from transformations (e.g., log or binning). 
+While some variables exhibit linear trends (e.g., euribor3m vs nr.employed), many scatterplots show dispersed or nonlinear patterns. This suggests that simple linear models may not fully capture the complexity in the data.
+</div>
 </div>
 </div>
 
