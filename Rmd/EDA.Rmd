@@ -6,6 +6,7 @@ source("../R/EDA_functions.R")
 
 ```{r echo=FALSE}
 train <- read.csv("../data/raw/bank_marketing_train.csv")
+train <- train %>% select(-X)
 attach(train)
 ```
 
@@ -15,41 +16,37 @@ datatable(head(train, 100), options = list(scrollX = TRUE))
 
 ### Variable descriptions
 #### Bank client data: {-}
-1. `X` (Integer): id of customer
-2. `age` (Integer): age of the customer
-3. `job` (Categorical): occupation
-4. `marital` (Categorical): marital status
-5. `education` (Categorical): education level
-6. `default` (Binary): has credit in default?
-7. `housing` (Binary): has housing loan?
-8. `loan` (Binary): has personal loan?
-9. `contact` (Categorical): contact communication type
-10. `month` (Categorical): last contact month of year
-11. `day_of_week` (Integer): last contact day of the week
-12. `duration` (Integer): last contact duration, in seconds (numeric). Important note: this attribute highly affects the output target (e.g., if duration=0 then y='no'). Yet, the duration is not known before a call is performed. Also, after the end of the call y is obviously known. Thus, this input should only be included for benchmark purposes and should be discarded if the intention is to have a realistic predictive model
+1. `age` (Integer): age of the customer
+2. `job` (Categorical): occupation
+3. `marital` (Categorical): marital status
+4. `education` (Categorical): education level
+5. `default` (Binary): has credit in default?
+6. `housing` (Binary): has housing loan?
+7. `loan` (Binary): has personal loan?
+8. `contact` (Categorical): contact communication type
+9. `month` (Categorical): last contact month of year
+10. `day_of_week` (Integer): last contact day of the week
+11. `duration` (Integer): last contact duration, in seconds (numeric). Important note: this attribute highly affects the output target (e.g., if duration=0 then y='no'). Yet, the duration is not known before a call is performed. Also, after the end of the call y is obviously known. Thus, this input should only be included for benchmark purposes and should be discarded if the intention is to have a realistic predictive model
 
 #### Other attributes: {-}
-13. `campaign` (Integer): number of contacts performed during this campaign and for this client (numeric, includes last contact)
-14. `pdays` (Integer): number of days that passed by after the client was last contacted from a previous campaign (numeric; -1 means client was not previously contacted)
-15. `previous` (Integer): number of contacts performed before this campaign and for this client
-16. `poutcome` (Categorical): outcome of the previous marketing campaign (categorical: 'failure','nonexistent','success')
+12. `campaign` (Integer): number of contacts performed during this campaign and for this client (numeric, includes last contact)
+13. `pdays` (Integer): number of days that passed by after the client was last contacted from a previous campaign (numeric; -1 means client was not previously contacted)
+14. `previous` (Integer): number of contacts performed before this campaign and for this client
+15. `poutcome` (Categorical): outcome of the previous marketing campaign (categorical: 'failure','nonexistent','success')
 
 #### Social and economic context attributes: {-}
-17. `emp.var.rate` (Integer): employment variation rate - quarterly indicator
-18. [`cons.price.idx`](https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Glossary:Consumer_price_index_(CPI)) (Integer): consumer price index - monthly indicator
-19. [`cons.conf.idx`](https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Glossary:Business_and_consumer_confidence) (Integer): consumer confidence index - monthly indicator
-20. [`euribor3m`](https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Glossary:EURIBOR) (Integer): euribor 3 month rate - daily indicator
-21. [`nr.employed`](https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Glossary:Number_of_employees_-_EBS) (Integer): number of employees - quarterly indicator
+16. [`emp.var.rate`](https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Glossary:Employment_rate) (Integer): employment variation rate - quarterly indicator
+17. [`cons.price.idx`](https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Glossary:Consumer_price_index_(CPI)) (Integer): consumer price index - monthly indicator
+18. [`cons.conf.idx`](https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Glossary:Business_and_consumer_confidence) (Integer): consumer confidence index - monthly indicator
+19. [`euribor3m`](https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Glossary:EURIBOR) (Integer): euribor 3 month rate - daily indicator
+20. [`nr.employed`](https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Glossary:Number_of_employees_-_EBS) (Integer): number of employees - quarterly indicator
 
 #### Output variable (desired target): {-}
-22. `subscribed` (Binary): has the client subscribed a term deposit?
+21. `subscribed` (Binary): has the client subscribed a term deposit?
 
 Source: [UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/222/bank+marketing)
 
 #### More details {-}
-```{r echo=FALSE}
-train <- train %>% select(-X)
-```
 
 ```{r echo=FALSE}
 skim(train)
@@ -242,21 +239,21 @@ eb3Var <- propResp(train, euribor3m, "Euribor 3 month rate", 3)
 
 <div class='plot-container'>
 ```{r warning=FALSE, echo=FALSE}
-print(cpiVar)
-```
-<div class="plot-text">
-<strong>Distribution of Days of Consumer Price Index</strong><br>
-The proportion of people that have subscribed is higher when the CPI is lower than 93. This is probably due to the fact that people when the CPI is lower have more money and are more likely to subscribe.
-</div>
-</div>
-
-<div class='plot-container'>
-```{r warning=FALSE, echo=FALSE}
 print(evrVar)
 ```
 <div class="plot-text">
 <strong>Distribution of Employment Variation</strong><br>
 The distribution of the employment variation rate is not uniform, with the majority of people that have a positive or zero employment variation rate. The proportion of people that have subscribed is among the higest when the employment variation rate is negative. This is probably due to the fact that people are more propensity to subscribe when they are in recession.
+</div>
+</div>
+
+<div class='plot-container'>
+```{r warning=FALSE, echo=FALSE}
+print(cpiVar)
+```
+<div class="plot-text">
+<strong>Distribution of Days of Consumer Price Index</strong><br>
+The proportion of people that have subscribed is higher when the CPI is lower than 93. This is probably due to the fact that people when the CPI is lower have more money and are more likely to subscribe.
 </div>
 </div>
 
