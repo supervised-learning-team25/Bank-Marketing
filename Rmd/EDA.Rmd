@@ -36,10 +36,10 @@ datatable(head(train, 100), options = list(scrollX = TRUE))
 
 #### Social and economic context attributes: {-}
 17. `emp.var.rate` (Integer): employment variation rate - quarterly indicator
-18. `cons.price.idx` (Integer): consumer price index - monthly indicator
-19. `cons.conf.idx` (Integer): consumer confidence index - monthly indicator
-20. `euribor3m` (Integer): euribor 3 month rate - daily indicator
-21. `nr.employed` (Integer): number of employees - quarterly indicator
+18. [`cons.price.idx`](https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Glossary:Consumer_price_index_(CPI)) (Integer): consumer price index - monthly indicator
+19. [`cons.conf.idx`](https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Glossary:Business_and_consumer_confidence) (Integer): consumer confidence index - monthly indicator
+20. [`euribor3m`](https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Glossary:EURIBOR) (Integer): euribor 3 month rate - daily indicator
+21. [`nr.employed`](https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Glossary:Number_of_employees_-_EBS) (Integer): number of employees - quarterly indicator
 
 #### Output variable (desired target): {-}
 22. `subscribed` (Binary): has the client subscribed a term deposit?
