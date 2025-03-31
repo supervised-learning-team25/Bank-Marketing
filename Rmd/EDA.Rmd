@@ -102,6 +102,9 @@ ggpairs(train[, c("age", "duration", "campaign", "pdays", "previous", "emp.var.r
                  lower = list(continuous = wrap("points", alpha = 0.5, size=0.5)),
                  title='Scatterplot by Target', axisLabels='none')
 ```
+<div class="plot-text">
+<strong style="color: #317eac">Scatterplot Matrix by Target</strong><br>
+From the diagonal histograms, we can see that most people did not subscribe as <strong>pink dominates most distributions</strong>. However, in certain plots, the <strong>blue points (subscribed) are concentrated in specific areas</strong>, showing the key factors that influenced successful subscriptions. The results of this scatterplot matrix visually support the findings explored deeper in the following exploratory data analysis.
 </div>
 </div>
 </div>
