@@ -46,6 +46,8 @@ datatable(head(train, 100), options = list(scrollX = TRUE))
 
 Source: [UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/222/bank+marketing)
 
+> **Note**: In our dataset there isn't the balance variable
+
 #### More details {-}
 
 ```{r echo=FALSE}
@@ -111,7 +113,7 @@ plot_ly(train, x = ~job, y = ~age, type = 'box', color = ~job) %>%
   layout(
     title = "Box plot: Age-Job",
     yaxis = list(title = "Age")
-  )
+  ) %>% layout(hovermode='x')
 ```
 
 As we can see, the age distribution is not similar across different job categories, exspecially for student that are younger than other categories and for retired that are older than other categories and have a wider range of ages, with some low value that may be disabled people.
@@ -121,7 +123,7 @@ plot_ly(train, x = ~education, y = ~age, type = 'box', color = ~education) %>%
   layout(
     title = "Box plot: Age-Education",
     yaxis = list(title = "Age")
-  )
+  ) %>% layout(hovermode='x')
 ```
 
 Instead, with the education level, people that are more educated are younger than people that are less educated. This is probably due to the fact that people that are more educated spend more time studying and less time working.
