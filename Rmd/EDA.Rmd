@@ -46,7 +46,7 @@ datatable(head(train, 100), options = list(scrollX = TRUE))
 
 Source: [UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/222/bank+marketing)
 
-> **Note**: In our dataset there isn't the balance variable
+> **Note**: In our dataset there isn't the bank `balance` variable
 
 #### More details {-}
 
