@@ -63,10 +63,17 @@ Macroeconomic variables such as **emp.var.rate**, **euribor3m**, and **nr.employ
 
 ### Analysis of distributions
 
-```{r warning=FALSE, echo=FALSE}
-plot_ly(train, x = ~subscribed, type = 'histogram') %>%
-  layout(title = "Number of subscribed")
+```{r echo=FALSE}
+freq_table <- train %>%
+  count(subscribed) %>%
+  mutate(prob = n / sum(n))
+
+plot_ly(freq_table, x = ~subscribed, y = ~prob, type = 'bar', 
+        hoverinfo = "x+y", text = ~n) %>%
+  layout(title = "Number of subscribed",
+         yaxis = list(title = "Probability"))
 ```
+
 
 Firstly we see that this dataset are **unbaleanced**, with the majority of people that have not subscribed.
 
@@ -291,7 +298,9 @@ When considering the Euribor rate, one might think that a lower Euribor would re
 </div>
 
 ### Conclusion
-In conclusion, the analysis reveals several key insights about the factors influencing the likelihood of subscription in this dataset. First, the **data is unbalanced**, with the majority of individuals not subscribing to the service. **Age** plays a significant role, with older individuals, particularly those over 60, being more likely to subscribe, potentially due to greater financial stability. **Occupation** and **education** level also appear to influence subscription, with people in administrative roles and those with higher education showing higher subscription rates, likely due to higher income and greater financial stability.
+In conclusion, the analysis reveals several key insights about the factors influencing the likelihood of subscription in this dataset. First, the **data is unbalanced**, with the majority of individuals not subscribing to the service. **Age** plays a significant role: with younger and older individuals, particularly those over 60, being more likely to subscribe potentially due to greater financial stability. **Occupation** and **education** level also appear to influence subscription, with people in administrative roles and those with higher education showing higher subscription rates, likely due to higher income and greater financial stability.
+
+In fact, considering the type of product offered by the bank (deposit accounts), which are safer and intended for short-term use, this may explain why students and retirees are more likely to subscribe. Students may prefer short-term investments to use the money for future projects, while retirees may be more risk-averse.
 
 **Previous engagement** with the campaign positively correlates with subscription, especially for individuals contacted multiple times or who had a successful outcome in prior campaigns. Additionally, the **timing of the contact** seems to affect subscription rates, with the highest rates observed in March, December, September, and October, and a higher likelihood of subscription when the **contact duration** is longer.
 
