@@ -1,6 +1,6 @@
 ---
 title: "Bank-Marketing"
-knit: (function(input, ...) {rmarkdown::render(input, output_file="../docs/index.html")})
+knit: (function(input, ...) {rmarkdown::render(input, output_file="../docs/Bank-Marketing.html")})
 
 output:
   html_document:
@@ -41,5 +41,5 @@ library(dplyr)
 ```{r child="Introduction.Rmd" } 
 ```
 
-```{r child="EDA.Rmd" } 
+```{r child="EDA.Rmd" }
 ```
