@@ -1,0 +1,37 @@
+## Model selection
+
+### Preprocessing
+
+```{r}
+train$job_student <- ifelse(train$job == "student", 1, 0)
+train$job_retired <- ifelse(train$job == "retired", 1, 0)
+train$job_admin <- ifelse(train$job == "admin.", 1, 0)
+
+train$cons.price.idx<-ifelse(train$cons.price.idx<93, 1, 0)
+names(train)[names(train) == "cons.price.idx"] <- "low_cpi"
+ 
+ 
+train$cons.conf.idx<-ifelse(train$cons.conf.idx>median(cons.conf.idx), 1, 0)
+names(train)[names(train) == "cons.conf.idx"] <- "high_cci"
+ 
+train$euribor3m<-ifelse(train$euribor3m<mean(euribor3m), 1, 0)
+names(train)[names(train) == "euribor3m"] <- "low_euribor"
+ 
+ 
+train$emp.var.rate<-ifelse(train$emp.var.rate<0, 1, 0)
+names(train)[names(train) == "emp.var.rate"] <- "negative_emp"
+ 
+train$university<-ifelse(train$education=='university.degree', 1, 0)
+train$p_course<-ifelse(train$education=='professional.course', 1, 0)
+train <- subset(train, select = -education)
+
+
+train$month_sep <- ifelse(train$month == "sep", 1, 0)
+train$month_oct <- ifelse(train$month == "oct", 1, 0)
+train$month_dec <- ifelse(train$month == "dec", 1, 0)
+train$month_mar <- ifelse(train$month == "mar", 1, 0)
+```
+
+
+
+```{r

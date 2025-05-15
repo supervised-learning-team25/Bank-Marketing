@@ -38,8 +38,11 @@ library(patchwork)
 library(dplyr)
 ```
 
-```{r child="Introduction.Rmd" } 
+```{r child="Introduction.Rmd"} 
 ```
 
-```{r child="EDA.Rmd" }
+```{r child="EDA.Rmd"}
+```
+
+```{r child="modelSelection.Rmd"}
 ```

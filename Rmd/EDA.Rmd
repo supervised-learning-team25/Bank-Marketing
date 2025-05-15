@@ -82,7 +82,7 @@ Firstly we see that this dataset are **unbaleanced**, with the majority of peopl
 <div class="hscroll-plot" style="height: 625px;">
 <div class='plot-container'>
 ```{r warning=FALSE, echo=FALSE}
-corrplot(cor(train[, c("age", "duration", "campaign", "pdays", "previous", "emp.var.rate", "cons.price.idx", "cons.conf.idx", "euribor3m", "nr.employed")]), method="pie")
+corrplot(cor(train[, c("age", "duration", "campaign", "pdays", "previous", "emp.var.rate", "cons.price.idx", "cons.conf.idx", "euribor3m", "nr.employed")]), method="pie", order='hclust')
 ```
 <div class="plot-text">
 <strong style="color: #317eac">Correlation Matrix</strong><br>
@@ -118,25 +118,53 @@ From the diagonal histograms, we can see that most people did not subscribe as <
 
 #### Distribution of Age across Different Education Levels and Jobs {-}
 
+<div class="hscroll-plot" style="height: 625px;">
+<div class='plot-container'>
 ```{r warning=FALSE, echo=FALSE}
-plot_ly(train, x = ~job, y = ~age, type = 'box', color = ~job) %>%
-  layout(
-    title = "Box plot: Age-Job",
-    yaxis = list(title = "Age")
-  ) %>% layout(hovermode='x')
+plot_ly(data=train, x=age, y=subscribed, 
+          type='box',color=subscribed,colors=c('lightblue', 'lightsalmon'))%>%
+    layout(title='<i> Age boxplot </i>', xaxis = list(title = 'Age'),
+           legend = list(title=list(text='<b> Target </b>')), hovermode = 'y')
 ```
+<div class="plot-text">
+<strong style="color: #317eac">[NAME]</strong><br>
+Text
+</div>
+</div>
 
-As we can see, the age distribution is not similar across different job categories, exspecially for student that are younger than other categories and for retired that are older than other categories and have a wider range of ages, with some low value that may be disabled people.
 
+<div class='plot-container'>
 ```{r warning=FALSE, echo=FALSE}
-plot_ly(train, x = ~education, y = ~age, type = 'box', color = ~education) %>%
-  layout(
-    title = "Box plot: Age-Education",
-    yaxis = list(title = "Age")
-  ) %>% layout(hovermode='x')
+plot_ly(data=train, x=~emp.var.rate, y=~subscribed, split=~subscribed,
+          type='violin', box=list(visible=TRUE), orientation='h', color=subscribed,colors=c('lightblue', 'lightsalmon'))%>%
+    layout(title='<i> emp.var.rate violin-box plot </i>', xaxis = list(title = 'emp.var.rate'),
+           legend = list(title=list(text='<b> Target </b>')), hovermode = 'y')
 ```
+<div class="plot-text">
+<strong style="color: #317eac">[NAME]</strong><br>
+Text
+</div>
+</div>
 
-Instead, with the education level, people that are more educated are younger than people that are less educated. This is probably due to the fact that people that are more educated spend more time studying and less time working.
+
+<div class='plot-container'>
+```{r warning=FALSE, echo=FALSE}
+plot_ly(data=train, x=~euribor3m, y=~subscribed, split=~subscribed,
+          type='violin', box=list(visible=TRUE), orientation='h', color=subscribed,colors=c('lightblue', 'lightsalmon'))%>%
+    layout(title='<i> euribor3m violin-box plot </i>', xaxis = list(title = 'euribor3m'),
+           legend = list(title=list(text='<b> Target </b>')), hovermode = 'y')
+  
+```
+<div class="plot-text">
+<strong style="color: #317eac">[NAME]</strong><br>
+Text
+</div>
+</div>
+</div>
+
+
+
+
 
 #### Client data {-}
 
@@ -298,12 +326,14 @@ When considering the Euribor rate, one might think that a lower Euribor would re
 </div>
 
 ### Conclusion
-In conclusion, the analysis reveals several key insights about the factors influencing the likelihood of subscription in this dataset. First, the **data is unbalanced**, with the majority of individuals not subscribing to the service. **Age** plays a significant role: with younger and older individuals, particularly those over 60, being more likely to subscribe potentially due to greater financial stability. **Occupation** and **education** level also appear to influence subscription, with people in administrative roles and those with higher education showing higher subscription rates, likely due to higher income and greater financial stability.
+The Exploratory Data Analysis reveals several important insights into the factors that influence the likelihood of subscription in this dataset. Below there is a summary of the key findings:
+* The dataset is imbalanced, with the majority of contacted individuals not subscribing.
+* Both younger and older individuals exhibit a higher likelihood of subscribing compared to those in middle age.
+* Socio-demographic factors, such as education and jobs, appear to influence subscription rates, for example, individuals in administrative roles and those with higher education levels tend to subscribe more often.
+* Prior interaction with the campaign, especially repeated contacts or past successful outcomes, is positively associated with subscription.
+* Subscription rates vary by month, with peaks in March, December, September, and October. Additionally, longer call durations are linked to a higher likelihood of subscription.
+* All economic variables examined show significant associations with subscription. Specifically, lower CPI, a negative employment variation rate, and higher CCI are correlated with increased subscription rates.
 
-In fact, considering the type of product offered by the bank (deposit accounts), which are safer and intended for short-term use, this may explain why students and retirees are more likely to subscribe. Students may prefer short-term investments to use the money for future projects, while retirees may be more risk-averse.
+In summary, the analysis suggests that financial conditions, previous campaign interactions, and macroeconomic indicators are strong predictors of subscription behavior. Demographic factors such as age, occupation, and education level also contribute meaningfully to the outcome.
 
-**Previous engagement** with the campaign positively correlates with subscription, especially for individuals contacted multiple times or who had a successful outcome in prior campaigns. Additionally, the **timing of the contact** seems to affect subscription rates, with the highest rates observed in March, December, September, and October, and a higher likelihood of subscription when the **contact duration** is longer.
-
-Economic factors, such as the **Consumer Price Index (CPI)**, **employment variation rate**, **consumer confidence index**, and **Euribor rate**, all show significant associations with subscription rates. A lower CPI, negative employment variation rate, and a higher consumer confidence index tend to be linked to higher subscription rates, reflecting the impact of financial conditions on consumer behavior.
-
-Overall, the analysis suggests that financial stability, previous engagement, and certain economic factors are key drivers of subscription, while factors like age, occupation, and education level also influence the likelihood of subscribing.
+In the next section, we will use these EDA findings to conduct a preliminary skim of the most influential variables, based on the visual trends observed in the plots.
