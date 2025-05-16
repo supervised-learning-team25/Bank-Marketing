@@ -5,12 +5,6 @@ source("../R/EDA_functions.R")
 ```
 
 ```{r echo=FALSE}
-train <- read.csv("../data/raw/bank_marketing_train.csv")
-train <- train %>% select(-X)
-attach(train)
-```
-
-```{r echo=FALSE}
 datatable(head(train, 100), options = list(scrollX = TRUE))
 ```
 
@@ -327,13 +321,17 @@ When considering the Euribor rate, one might think that a lower Euribor would re
 
 ### Conclusion
 The Exploratory Data Analysis reveals several important insights into the factors that influence the likelihood of subscription in this dataset. Below there is a summary of the key findings:
-* The dataset is imbalanced, with the majority of contacted individuals not subscribing.
-* Both younger and older individuals exhibit a higher likelihood of subscribing compared to those in middle age.
-* Socio-demographic factors, such as education and jobs, appear to influence subscription rates, for example, individuals in administrative roles and those with higher education levels tend to subscribe more often.
-* Prior interaction with the campaign, especially repeated contacts or past successful outcomes, is positively associated with subscription.
-* Subscription rates vary by month, with peaks in March, December, September, and October. Additionally, longer call durations are linked to a higher likelihood of subscription.
-* All economic variables examined show significant associations with subscription. Specifically, lower CPI, a negative employment variation rate, and higher CCI are correlated with increased subscription rates.
 
-In summary, the analysis suggests that financial conditions, previous campaign interactions, and macroeconomic indicators are strong predictors of subscription behavior. Demographic factors such as age, occupation, and education level also contribute meaningfully to the outcome.
+* The dataset is **unbalanced**, with the majority of contacted individuals not subscribing.  
+- Both **younger** and **older** individuals exhibit a higher likelihood of subscribing compared to those in middle age. 
+* **Socio-demographic** factors, such as education and jobs, appear to influence subscription rates, for example, individuals in administrative roles and those with higher education levels tend to subscribe more often.  
+* **Prior interaction** with the campaign, especially repeated contacts or past successful outcomes, is positively associated with subscription. 
+* Subscription rates vary by **month**, with peaks in March, December, September, and October. Additionally, longer call durations are linked to a higher likelihood of subscription.  
+* All **economic variables** examined show significant associations with subscription. Specifically, lower CPI, a negative employment variation rate, and higher CCI are correlated with increased subscription rates.
 
-In the next section, we will use these EDA findings to conduct a preliminary skim of the most influential variables, based on the visual trends observed in the plots.
+In summary, the analysis suggests that financial conditions, previous campaign interactions, and macroeconomic indicators are **strong predictors** of subscription behavior. Demographic factors such as age, occupation, and education level also contribute meaningfully to the outcome.
+
+In the next section, we will use these EDA findings to conduct a **preliminary skim** of the most influential variables, based on the visual trends observed in the plots.
+
+
+

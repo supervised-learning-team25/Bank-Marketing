@@ -13,8 +13,7 @@ output:
     css: "../docs/styles.css"
 ---
 
-_Authors_:
-[Mauro Venticinque](https://it.linkedin.com/in/mauro-venticinque-01a297212), [Angelo Schillaci](https://www.linkedin.com/in/angelo-schillaci-095064213), [Daniele Tambone](https://www.linkedin.com/in/daniele-tambone-b5733616a)
+_Authors_: [Mauro Venticinque](https://it.linkedin.com/in/mauro-venticinque-01a297212) | [Angelo Schillaci](https://www.linkedin.com/in/angelo-schillaci-095064213) | [Daniele Tambone](https://www.linkedin.com/in/daniele-tambone-b5733616a)
 
 _GitHub project_: [Bank-Marketing](https://github.com/DanieleT25/Bank-Marketing)
 
@@ -36,7 +35,24 @@ library(plotly)
 library(Hmisc)
 library(patchwork)
 library(dplyr)
+
+library(MASS)
+library(car)
+library(caret)
+library(ISLR)
+library(ISLR2)
+library(tidyverse)
+library(glmnet) # for LASSO
+library(pROC)
+
 ```
+
+```{r echo=FALSE, message=FALSE}
+train <- read.csv("../data/raw/bank_marketing_train.csv")
+train <- train %>% dplyr::select(-X)
+attach(train)
+```
+
 
 ```{r child="Introduction.Rmd"} 
 ```
