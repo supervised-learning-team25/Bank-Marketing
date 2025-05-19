@@ -6,20 +6,10 @@ source("../R/MS_functions.R")
 
 
 ### Preprocessing
-With a view to training the model, we apply **one-hot encoding**.
+Based on the Exploratory Data Analysis (EDA), we selected only the most relevant variables.
 
-Based on the Exploratory Data Analysis (EDA), we selected only the most relevant variables and according to the following patterns:
+With a view to training the model, we apply **one-hot encoding**. We obtain the following dataset:
 
-* People with a university degree or a professional training course are more likely to subscribe.
-* Individuals who are students or retired show a higher tendency to subscribe.
-* There are more subscriptions in the `months` of September, October, December, and March.
-* People who in the `previous campaign` either subscribed or refused are more likely to subscribe, compared to those who were not contacted.
-* `cons.price.idx` values greater than 93 are linked to a higher chance of subscription.
-* `cons.conf.idx` values above the median are associated with a higher likelihood of subscription.
-* `euribor3m` values below the mean correspond to a higher probability of subscription.
-* `emp.var.rate` values below 0 are more likely to be associated with subscription.
-
-We transform these continuous variables into binary indicators reflecting these insights. 
 ```{r, echo=FALSE}
 train_bin <- train
 
@@ -75,9 +65,14 @@ detach(train)
 attach(full_df)
 ```
 
-We obtain the following dataset:
 ```{r, echo=FALSE}
-str(full_df)
+varDf <- data.frame(
+  Variable = names(full_df),
+  Type = c("int", "bool", "bool", "bool", "int", "bool", "bool", "bool", "bool", "bool", "bool", "bool", "bool", "bool", "bool", "bool", "bool", "bool", "bool", "bool", "bool")
+)
+
+kable(varDf, align = "ll", caption = "21 Variable") %>%
+kable_styling(full_width = TRUE, position = "center", bootstrap_options = "striped")
 ```
 
 ### STEPWISE selection
@@ -272,4 +267,3 @@ roc_qda <- roc(full_df$target, probs_qda)
 plot(roc_qda, main = "ROC Curve for QDA LASSO Model")
 auc(roc_qda)
 ```
-

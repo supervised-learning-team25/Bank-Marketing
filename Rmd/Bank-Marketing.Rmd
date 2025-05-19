@@ -45,6 +45,8 @@ library(tidyverse)
 library(glmnet) # for LASSO
 library(pROC)
 
+library(knitr)
+library(kableExtra)
 ```
 
 ```{r, echo=FALSE, message=FALSE}
