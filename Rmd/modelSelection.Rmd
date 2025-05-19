@@ -1,45 +1,68 @@
 ## Model selection
 
 ### Preprocessing
+With a view to training the model, we apply **one-hot encoding**.
 
-```{r}
-train$cons.price.idx<-ifelse(train$cons.price.idx<93, 1, 0)
-names(train)[names(train) == "cons.price.idx"] <- "low_cpi"
+Based on the Exploratory Data Analysis (EDA), we selected only the most relevant variables and according to the following patterns:
 
-train$cons.conf.idx<-ifelse(train$cons.conf.idx>median(cons.conf.idx), 1, 0)
-names(train)[names(train) == "cons.conf.idx"] <- "high_cci"
+* People with a university degree or a professional training course are more likely to subscribe.
+* Individuals who are students or retired show a higher tendency to subscribe.
+* There are more subscriptions in the `months` of September, October, December, and March.
+* People who in the `previous campaign` either subscribed or refused are more likely to subscribe, compared to those who were not contacted.
+* `cons.price.idx` values greater than 93 are linked to a higher chance of subscription.
+* `cons.conf.idx` values above the median are associated with a higher likelihood of subscription.
+* `euribor3m` values below the mean correspond to a higher probability of subscription.
+* `emp.var.rate` values below 0 are more likely to be associated with subscription.
 
-train$euribor3m<-ifelse(train$euribor3m<mean(euribor3m), 1, 0)
-names(train)[names(train) == "euribor3m"] <- "low_euribor"
+We transform these continuous variables into binary indicators reflecting these insights. 
+```{r echo=FALSE}
+train_bin <- train
 
-train$emp.var.rate<-ifelse(train$emp.var.rate<0, 1, 0)
-names(train)[names(train) == "emp.var.rate"] <- "negative_emp"
+train_bin$cons.price.idx <- ifelse(train_bin$cons.price.idx < 93, 1, 0)
+names(train_bin)[names(train_bin) == "cons.price.idx"] <- "low_cpi"
 
-train$university<-ifelse(train$education=='university.degree', 1, 0)
-train$p_course<-ifelse(train$education=='professional.course', 1, 0)
-train <- subset(train, select = -education)
+train_bin$cons.conf.idx <- ifelse(train_bin$cons.conf.idx > median(train$cons.conf.idx), 1, 0)
+names(train_bin)[names(train_bin) == "cons.conf.idx"] <- "high_cci"
 
-train$job_student <- ifelse(train$job == "student", 1, 0)
-train$job_retired <- ifelse(train$job == "retired", 1, 0)
-train$job_admin <- ifelse(train$job == "admin.", 1, 0)
-train <- subset(train, select = -job)
+train_bin$euribor3m <- ifelse(train_bin$euribor3m < mean(train$euribor3m), 1, 0)
+names(train_bin)[names(train_bin) == "euribor3m"] <- "low_euribor"
 
-train$month_sep <- ifelse(train$month == "sep", 1, 0)
-train$month_oct <- ifelse(train$month == "oct", 1, 0)
-train$month_dec <- ifelse(train$month == "dec", 1, 0)
-train$month_mar <- ifelse(train$month == "mar", 1, 0)
+train_bin$emp.var.rate <- ifelse(train_bin$emp.var.rate < 0, 1, 0)
+names(train_bin)[names(train_bin) == "emp.var.rate"] <- "negative_emp"
 
-train$p_failure <- ifelse(train$poutcome == "failure", 1, 0)
-train$p_success <- ifelse(train$poutcome == "success", 1, 0)
-train <- subset(train, select = -poutcome)
+train_bin$university<-ifelse(train_bin$education=='university.degree', 1, 0)
+train_bin$p_course<-ifelse(train_bin$education=='professional.course', 1, 0)
+train_bin <- subset(train_bin, select = -education)
 
-drop_var<-c('...1', "marital", "default", 'housing' ,"loan", 
-            "contact","day_of_week", "month", "campaign",  "nr.employed", 'job', "duration")
+train_bin$job_student <- ifelse(train_bin$job == "student", 1, 0)
+train_bin$job_retired <- ifelse(train_bin$job == "retired", 1, 0)
+train_bin$job_admin <- ifelse(train_bin$job == "admin.", 1, 0)
+train_bin <- subset(train_bin, select = -job)
 
-full_df <- train[, !(names(train) %in% drop_var)]
+train_bin$month_sep <- ifelse(train_bin$month == "sep", 1, 0)
+train_bin$month_oct <- ifelse(train_bin$month == "oct", 1, 0)
+train_bin$month_dec <- ifelse(train_bin$month == "dec", 1, 0)
+train_bin$month_mar <- ifelse(train_bin$month == "mar", 1, 0)
+
+train_bin$p_failure <- ifelse(train_bin$poutcome == "failure", 1, 0)
+train_bin$p_success <- ifelse(train_bin$poutcome == "success", 1, 0)
+train_bin <- subset(train_bin, select = -poutcome)
+```
+
+```{r echo=FALSE}
+drop_var<-c("marital", "default", 'housing' ,"loan", 
+            "contact","day_of_week", "month", "campaign",  "nr.employed", 'job', "duration", "pdays")
+
+full_df <- train_bin[, !(names(train_bin) %in% drop_var)]
 full_df$target <-ifelse(subscribed=='yes', 1, 0)
 full_df<-full_df[, !(names(full_df)) %in% 'subscribed']
+detach(train)
 attach(full_df)
+```
+
+We obtain the following dataset:
+```{r echo=FALSE}
+str(full_df)
 ```
 
 ### STEPWISE selection
@@ -74,10 +97,9 @@ plot(cv_fit)
 
 # predictors selected by Lasso
 coef(cv_fit, s = "lambda.1se")
-lasso_mod<-glm(target~pdays+negative_emp+low_cpi+high_cci+low_euribor+university+job_student+
+lasso_mod<-glm(target~negative_emp+low_cpi+high_cci+low_euribor+university+job_student+
                  job_retired+month_sep+month_oct+month_dec+month_mar+p_failure+p_success, data=full_df, family=binomial)
 ```
-
 
 ```{r}
 k_fold_mod <- function(data, target_col, model_formula, k = 10) {
@@ -252,17 +274,4 @@ results_df <- do.call(rbind, lapply(names(results_list), function(name) {
 print(results_df)
 
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
 

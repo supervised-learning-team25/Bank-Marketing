@@ -86,56 +86,46 @@ The correlation matrix reveals clear patterns among the numerical variables. Not
 
 <div class='plot-container'>
 ```{r warning=FALSE, echo=FALSE}
-ggpairs(train[, c("age", "duration", "campaign", "pdays", "previous", "emp.var.rate", "cons.price.idx", "cons.conf.idx", "euribor3m", "nr.employed")], columns = 1:10, 
-                 lower = list(continuous = wrap("points", alpha = 0.5, color = "darkred", size=0.5)),
-                 title='Scatterplot', axisLabels='none')
-```
-<div class="plot-text">
-<strong style="color: #317eac">Scatterplot Matrix</strong><br>
-The scatterplot matrix confirms the <strong>distribution shape and linearity</strong> of relationships among the numeric variables. Several variables, such as <strong>duration</strong> and <strong>pdays</strong>, show <strong>highly skewed distributions</strong>, which could influence model performance and may benefit from transformations (e.g., log or binning). 
-While some variables exhibit linear trends (e.g., euribor3m vs nr.employed), many scatterplots show dispersed or nonlinear patterns. This suggests that simple linear models may not fully capture the complexity in the data.
-</div>
-</div>
-
-<div class='plot-container'>
-```{r warning=FALSE, echo=FALSE}
 ggpairs(train[, c("age", "duration", "campaign", "pdays", "previous", "emp.var.rate", "cons.price.idx", "cons.conf.idx", "euribor3m", "nr.employed")], columns = 1:10,  aes(colour = as.factor(subscribed)),
                  lower = list(continuous = wrap("points", alpha = 0.5, size=0.5)),
                  title='Scatterplot by Target', axisLabels='none')
 ```
 <div class="plot-text">
 <strong style="color: #317eac">Scatterplot Matrix by Target</strong><br>
-From the diagonal histograms, we can see that most people did not subscribe as <strong>pink dominates most distributions</strong>. However, in certain plots, the <strong>blue points (subscribed) are concentrated in specific areas</strong>, showing the key factors that influenced successful subscriptions. The results of this scatterplot matrix visually support the findings explored deeper in the following exploratory data analysis.
+Several variables, such as <strong>duration</strong> and <strong>pdays</strong>, show <strong>highly skewed distributions</strong>, which could influence model performance and may benefit from transformations (e.g., log or binning).While some variables exhibit linear trends (e.g., euribor3m vs nr.employed), many scatterplots show dispersed or nonlinear patterns. This suggests that simple linear models may not fully capture the complexity in the data.
+
+In certain plots, the <strong>blue points (subscribed) are concentrated in specific areas</strong>, showing the key factors that influenced successful subscriptions.
 </div>
 </div>
 </div>
 
-#### Distribution of Age across Different Education Levels and Jobs {-}
+#### Distribution of Subscribed across Different Variable {-}
 
-<div class="hscroll-plot" style="height: 625px;">
-<div class='plot-container'>
+<div class="hscroll-plot" style="height: 625px">
+<div class='plot-container' style="width: 665px;">
 ```{r warning=FALSE, echo=FALSE}
 plot_ly(data=train, x=age, y=subscribed, 
           type='box',color=subscribed,colors=c('lightblue', 'lightsalmon'))%>%
     layout(title='<i> Age boxplot </i>', xaxis = list(title = 'Age'),
+         yaxis = list(title = "Subscribed"),
            legend = list(title=list(text='<b> Target </b>')), hovermode = 'y')
 ```
 <div class="plot-text">
-<strong style="color: #317eac">[NAME]</strong><br>
-Text
+<strong style="color: #317eac">Box plot of age</strong><br>
+It is harder to see older people say no
 </div>
 </div>
 
-
-<div class='plot-container'>
+<div class='plot-container' style="width: 665px;">
 ```{r warning=FALSE, echo=FALSE}
 plot_ly(data=train, x=~emp.var.rate, y=~subscribed, split=~subscribed,
           type='violin', box=list(visible=TRUE), orientation='h', color=subscribed,colors=c('lightblue', 'lightsalmon'))%>%
     layout(title='<i> emp.var.rate violin-box plot </i>', xaxis = list(title = 'emp.var.rate'),
+         yaxis = list(title = ""),
            legend = list(title=list(text='<b> Target </b>')), hovermode = 'y')
 ```
 <div class="plot-text">
-<strong style="color: #317eac">[NAME]</strong><br>
+<strong style="color: #317eac">Box plot of emp.var.rate</strong><br>
 Text
 </div>
 </div>
@@ -146,19 +136,16 @@ Text
 plot_ly(data=train, x=~euribor3m, y=~subscribed, split=~subscribed,
           type='violin', box=list(visible=TRUE), orientation='h', color=subscribed,colors=c('lightblue', 'lightsalmon'))%>%
     layout(title='<i> euribor3m violin-box plot </i>', xaxis = list(title = 'euribor3m'),
+         yaxis = list(title = ""),
            legend = list(title=list(text='<b> Target </b>')), hovermode = 'y')
   
 ```
 <div class="plot-text">
-<strong style="color: #317eac">[NAME]</strong><br>
+<strong style="color: #317eac">Box plot of euribor3m</strong><br>
 Text
 </div>
 </div>
 </div>
-
-
-
-
 
 #### Client data {-}
 
@@ -167,6 +154,8 @@ Text
 ageVar <- propResp(train, age, "Age", 4, 30)
 jobVar <- freqRespOnSubscribed(train, job, "Job")
 eduVar <- freqRespOnSubscribed(train, education, "Education")
+maritalVar <- freqRespOnSubscribed(train, marital, "Marital")
+contactVar <- freqRespOnSubscribed(train, contact, "Contact")
 ```
 
 <div class='plot-container'>
@@ -199,6 +188,26 @@ About Education Level, we can see that the distribution of the education level i
 This is probably due to the fact that people that have a university degree have a higher income and are more likely to subscribe.
 </div>
 </div>
+
+<div class='plot-container'>
+```{r warning=FALSE, echo=FALSE}
+print(maritalVar)
+```
+<div class="plot-text">
+<strong style="color: #317eac">Distribution of Marital status</strong><br>
+Text.
+</div>
+</div>
+
+<div class='plot-container'>
+```{r warning=FALSE, echo=FALSE}
+print(contactVar)
+```
+<div class="plot-text">
+<strong style="color: #317eac">Distribution of Contact</strong><br>
+Text.
+</div>
+</div>
 </div>
 
 #### Previous Campaign Data {-}
@@ -207,6 +216,7 @@ This is probably due to the fact that people that have a university degree have 
 ```{r warning=FALSE, echo=FALSE, fig.width=7, fig.height=5}
 previousVar <- freqRespOnSubscribed(train, previous, "Number of calls previous campain")
 poutcomeVar <- freqRespOnSubscribed(train, poutcome, "Poutcome")
+campaignVar <- freqRespOnSubscribed(train, campaign, "Campaign")
 ```
 
 <div class='plot-container'>
@@ -217,6 +227,11 @@ print(previousVar)
 <div class='plot-container'>
 ```{r warning=FALSE, echo=FALSE}
 print(poutcomeVar)
+```
+</div>
+<div class='plot-container'>
+```{r warning=FALSE, echo=FALSE}
+print(campaignVar)
 ```
 </div>
 </div>
