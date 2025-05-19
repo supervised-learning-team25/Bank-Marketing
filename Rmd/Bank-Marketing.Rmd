@@ -47,7 +47,7 @@ library(pROC)
 
 ```
 
-```{r echo=FALSE, message=FALSE}
+```{r, echo=FALSE, message=FALSE}
 train <- read.csv("../data/raw/bank_marketing_train.csv")
 train <- train %>% dplyr::select(-X)
 attach(train)
@@ -57,8 +57,8 @@ attach(train)
 ```{r child="Introduction.Rmd"} 
 ```
 
-```{r child="EDA.Rmd"}
-```
+#```{r child="EDA.Rmd"}
+#```
 
 ```{r child="modelSelection.Rmd"}
 ```

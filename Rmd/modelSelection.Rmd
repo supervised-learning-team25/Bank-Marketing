@@ -1,6 +1,6 @@
 ## Model selection
 
-```{r, echo=FALSE}}
+```{r, echo=FALSE}
 source("../R/MS_functions.R")
 ```
 
@@ -20,7 +20,7 @@ Based on the Exploratory Data Analysis (EDA), we selected only the most relevant
 * `emp.var.rate` values below 0 are more likely to be associated with subscription.
 
 We transform these continuous variables into binary indicators reflecting these insights. 
-```{r echo=FALSE}
+```{r, echo=FALSE}
 train_bin <- train
 
 train_bin$cons.price.idx <- ifelse(train_bin$cons.price.idx < 93, 1, 0)
@@ -52,11 +52,21 @@ train_bin$month_mar <- ifelse(train_bin$month == "mar", 1, 0)
 train_bin$p_failure <- ifelse(train_bin$poutcome == "failure", 1, 0)
 train_bin$p_success <- ifelse(train_bin$poutcome == "success", 1, 0)
 train_bin <- subset(train_bin, select = -poutcome)
+
+train_bin$contact <- ifelse(train_bin$contact == "cellular", 1, 0)
+names(train_bin)[names(train_bin) == "contact"] <- "cellular"
+
+train_bin$marital <- ifelse(train_bin$marital == "single", 1, 0)
+names(train_bin)[names(train_bin) == "marital"] <- "single"
+
+train_bin$campaign <- ifelse(train_bin$campaign > 5, 0, 1)
+names(train_bin)[names(train_bin) == "campaign"] <- "low_call"
+
 ```
 
-```{r echo=FALSE}
-drop_var<-c("marital", "default", 'housing' ,"loan", 
-            "contact","day_of_week", "month", "campaign",  "nr.employed", 'job', "duration", "pdays")
+```{r, echo=FALSE}
+drop_var<-c('pdays', "default", 'housing' ,"loan", "day_of_week", 
+            "month", "nr.employed", 'job', "duration")
 
 full_df <- train_bin[, !(names(train_bin) %in% drop_var)]
 full_df$target <-ifelse(subscribed=='yes', 1, 0)
@@ -66,7 +76,7 @@ attach(full_df)
 ```
 
 We obtain the following dataset:
-```{r echo=FALSE}
+```{r, echo=FALSE}
 str(full_df)
 ```
 
