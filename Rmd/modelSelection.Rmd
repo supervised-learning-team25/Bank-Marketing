@@ -1,5 +1,10 @@
 ## Model selection
 
+```{r, echo=FALSE}}
+source("../R/MS_functions.R")
+```
+
+
 ### Preprocessing
 With a view to training the model, we apply **one-hot encoding**.
 
@@ -73,11 +78,18 @@ stepwise <- stepAIC(full_model, direction = "both", trace = FALSE)
 vif(stepwise)
 
 # predictore removed by Stepwise
-stepwise$anova 
+stepwise$anova
+
+stepwise_formula <- target ~ single + cellular + low_call + previous + negative_emp + 
+  low_cpi + high_cci + low_euribor + university + p_course + 
+  job_student + job_retired + job_admin + month_sep + month_oct + 
+  month_dec + month_mar + p_failure + p_success
 ```
 
 ### LASSO selection
 ```{r}
+set.seed(123)
+
 df_no_target <- subset(full_df, select = -target)
 
 fit_lasso <- glmnet(x = as.matrix(df_no_target),
@@ -97,131 +109,13 @@ plot(cv_fit)
 
 # predictors selected by Lasso
 coef(cv_fit, s = "lambda.1se")
-lasso_mod<-glm(target~negative_emp+low_cpi+high_cci+low_euribor+university+job_student+
-                 job_retired+month_sep+month_oct+month_dec+month_mar+p_failure+p_success, data=full_df, family=binomial)
-```
 
-```{r}
-k_fold_mod <- function(data, target_col, model_formula, k = 10) {
-  
-  set.seed(123)
-  folds <- createFolds(data[[target_col]], k = k, list = TRUE, returnTrain = FALSE)
-  
-  acc_best_vec     <- numeric(k)
-  f1_best_vec      <- numeric(k)
-  auc_vec          <- numeric(k)
-  aic_vec          <- numeric(k)
-  acc_thresh_vec   <- numeric(k)
-  f1_thresh_vec    <- numeric(k)
-  sensitivity_vec  <- numeric(k)
-  specificity_vec  <- numeric(k)
-  
-  for (i in 1:k) {
-    test_idx <- folds[[i]]
-    train_fold <- data[-test_idx, ]
-    test_fold  <- data[test_idx, ]
-    
-    # Fit model
-    fitted_model <- glm(model_formula, data = train_fold, family = binomial)
-    pred_probs_train <- predict(fitted_model, newdata = train_fold, type = "response")
-    actual_train <- train_fold[[target_col]]
-    
-    # Threshold search
-    thresholds <- seq(0.01, 0.99, by = 0.01)
-    acc_scores <- numeric(length(thresholds))
-    f1_scores  <- numeric(length(thresholds))
-    
-    for (j in seq_along(thresholds)) {
-      threshold <- thresholds[j]
-      preds <- ifelse(pred_probs_train > threshold, 1, 0)
-      acc_scores[j] <- mean(preds == actual_train)
-      
-      cm <- table(Predicted = preds, Actual = actual_train)
-      precision <- ifelse("1" %in% rownames(cm) && "1" %in% colnames(cm),
-                          cm["1", "1"] / sum(cm["1", ]), 0)
-      recall <- ifelse("1" %in% rownames(cm) && "1" %in% colnames(cm),
-                       cm["1", "1"] / sum(cm[, "1"]), 0)
-      f1 <- ifelse((precision + recall) > 0,
-                   2 * (precision * recall) / (precision + recall), 0)
-      f1_scores[j] <- f1
-    }
-    
-    # Best thresholds
-    best_acc_threshold <- thresholds[which.max(acc_scores)]
-    best_f1_threshold  <- thresholds[which.max(f1_scores)]
-    acc_thresh_vec[i] <- best_acc_threshold
-    f1_thresh_vec[i]  <- best_f1_threshold
-    
-    # Test predictions
-    pred_probs_test <- predict(fitted_model, newdata = test_fold, type = "response")
-    actual_test <- test_fold[[target_col]]
-    
-    pred_acc <- ifelse(pred_probs_test > best_acc_threshold, 1, 0)
-    pred_f1  <- ifelse(pred_probs_test > best_f1_threshold, 1, 0)
-    acc_best_vec[i] <- mean(pred_acc == actual_test)
-    
-    # Confusion matrix for F1 threshold
-    cm <- table(Predicted = pred_f1, Actual = actual_test)
-    
-    tp <- ifelse("1" %in% rownames(cm) && "1" %in% colnames(cm), cm["1", "1"], 0)
-    tn <- ifelse("0" %in% rownames(cm) && "0" %in% colnames(cm), cm["0", "0"], 0)
-    fp <- ifelse("1" %in% rownames(cm) && "0" %in% colnames(cm), cm["1", "0"], 0)
-    fn <- ifelse("0" %in% rownames(cm) && "1" %in% colnames(cm), cm["0", "1"], 0)
-    
-    precision <- ifelse((tp + fp) > 0, tp / (tp + fp), 0)
-    recall    <- ifelse((tp + fn) > 0, tp / (tp + fn), 0)
-    
-    f1_best_vec[i] <- ifelse((precision + recall) > 0,
-                             2 * (precision * recall) / (precision + recall), 0)
-    
-    sensitivity_vec[i] <- ifelse((tp + fn) > 0, tp / (tp + fn), NA)
-    specificity_vec[i] <- ifelse((tn + fp) > 0, tn / (tn + fp), NA)
-    
-    auc_vec[i] <- tryCatch({
-      roc_obj <- roc(actual_test, pred_probs_test)
-      as.numeric(auc(roc_obj))
-    }, error = function(e) NA)
-    
-    aic_vec[i] <- AIC(fitted_model)
-  }
-  
-  return(list(
-    Accuracy_at_best_threshold = paste0(round(mean(acc_best_vec, na.rm = TRUE), 4),
-                                        " (threshold = ", round(mean(acc_thresh_vec, na.rm = TRUE), 2), ")"),
-    F1_at_best_threshold       = paste0(round(mean(f1_best_vec, na.rm = TRUE), 4),
-                                        " (threshold = ", round(mean(f1_thresh_vec, na.rm = TRUE), 2), ")"),
-    Sensitivity                = round(mean(sensitivity_vec, na.rm = TRUE), 4),
-    Specificity                = round(mean(specificity_vec, na.rm = TRUE), 4),
-    AUC                        = round(mean(auc_vec, na.rm = TRUE), 4),
-    AIC                        = round(mean(aic_vec, na.rm = TRUE), 2)
-  ))
-}
+lasso_formula <- target ~ cellular + negative_emp + 
+  low_cpi + high_cci + low_euribor + university + 
+  job_student + job_retired + month_sep + month_oct + 
+  month_dec + month_mar + p_failure + p_success
 
-evaluate_threshold <- function(probs, target, threshold) {
-  pred <- ifelse(probs > threshold, 1, 0)
-  cm <- table(Predicted = pred, Actual = target)
-
-  tp <- ifelse("1" %in% rownames(cm) && "1" %in% colnames(cm), cm["1", "1"], 0)
-  tn <- ifelse("0" %in% rownames(cm) && "0" %in% colnames(cm), cm["0", "0"], 0)
-  fp <- ifelse("1" %in% rownames(cm) && "0" %in% colnames(cm), cm["1", "0"], 0)
-  fn <- ifelse("0" %in% rownames(cm) && "1" %in% colnames(cm), cm["0", "1"], 0)
-
-  accuracy    <- (tp + tn) / (tp + tn + fp + fn)
-  precision   <- ifelse((tp + fp) > 0, tp / (tp + fp), 0)
-  recall      <- ifelse((tp + fn) > 0, tp / (tp + fn), 0)
-  specificity <- ifelse((tn + fp) > 0, tn / (tn + fp), 0)
-  f1          <- ifelse((precision + recall) > 0,
-                        2 * (precision * recall) / (precision + recall), 0)
-
-  return(list(
-    Threshold   = threshold,
-    Accuracy    = round(accuracy, 4),
-    F1          = round(f1, 4),
-    Sensitivity = round(recall, 4),
-    Specificity = round(specificity, 4)
-  ))
-}
-
+lasso_mod<-glm(lasso_formula, data=full_df, family=binomial)
 ```
 
 ### Comperison
@@ -273,5 +167,99 @@ results_df <- do.call(rbind, lapply(names(results_list), function(name) {
 # Visualizza il risultato
 print(results_df)
 
+```
+
+
+### LDA
+
+#### Models
+```{r, echo=FALSE}
+lda_full_model <- lda(target ~ ., data = full_df)
+
+lda_stepwise_model <- lda(stepwise_formula, data = full_df)
+
+lda_lasso_model <- lda(lasso_formula, data = full_df)
+```
+
+#### CV
+```{r}
+results_lda_full <- cv_lda_eval(full_df, target ~ ., model_name = "LDA_Full", k = 10)
+
+results_lda_stepwise <- cv_lda_eval(full_df,stepwise_formula, model_name = "LDA_Stepwise", k = 10)
+
+results_lda_lasso <- cv_lda_eval(full_df, lasso_formula, model_name = "LDA_LASSO", k = 10)
+```
+
+#### Evaluate
+
+```{r}
+lda_results <- rbind(results_lda_full, results_lda_stepwise, results_lda_lasso)
+
+aggregate(cbind(Accuracy, F1, Sensitivity, Specificity) ~ Model + Optimized_For, data = lda_results, mean)
+aggregate(Threshold ~ Model + Optimized_For, data = lda_results, mean)
+```
+
+
+#### Best LDA
+
+```{r}
+print(lda_lasso_model)
+
+probs <- predict(lda_lasso_model)$posterior[, "1"]
+pred_class <- ifelse(probs > 0.16, 1, 0)
+table(Predicted = pred_class, Actual = full_df$target)
+
+evaluate_threshold(probs, full_df$target, threshold = 0.16)
+```
+
+#### ROC Curve
+
+```{r}
+roc_obj <- roc(full_df$target, probs)
+plot(roc_obj, main = "ROC Curve for LDA LASSO Model")
+auc(roc_obj)
+```
+
+
+### QDA
+
+#### Models
+```{r, echo=FALSE}
+qda_full_model     <- qda(target ~ ., data = full_df)
+qda_stepwise_model <- qda(stepwise_formula, data = full_df)
+qda_lasso_model    <- qda(lasso_formula, data = full_df)
+```
+
+#### CV
+```{r}
+results_qda_full     <- cv_qda_eval(full_df, target ~ ., model_name = "QDA_Full", k = 10)
+results_qda_stepwise <- cv_qda_eval(full_df, stepwise_formula, model_name = "QDA_Stepwise", k = 10)
+results_qda_lasso    <- cv_qda_eval(full_df, lasso_formula, model_name = "QDA_LASSO", k = 10)
+```
+
+#### Evaluate
+```{r}
+qda_results <- rbind(results_qda_full, results_qda_stepwise, results_qda_lasso)
+
+aggregate(cbind(Accuracy, F1, Sensitivity, Specificity) ~ Model + Optimized_For, data = qda_results, mean)
+aggregate(Threshold ~ Model + Optimized_For, data = qda_results, mean)
+```
+
+#### Best QDA
+```{r}
+print(qda_lasso_model)
+
+probs_qda <- predict(qda_lasso_model)$posterior[, "1"]
+pred_class_qda <- ifelse(probs_qda > 0.4, 1, 0)
+table(Predicted = pred_class_qda, Actual = full_df$target)
+
+evaluate_threshold(probs_qda, full_df$target, threshold = 0.4)
+```
+
+#### ROC Curve
+```{r}
+roc_qda <- roc(full_df$target, probs_qda)
+plot(roc_qda, main = "ROC Curve for QDA LASSO Model")
+auc(roc_qda)
 ```
 

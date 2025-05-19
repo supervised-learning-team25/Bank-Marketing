@@ -1,4 +1,7 @@
+# Function for model selection
+
 k_fold_mod <- function(data, target_col, model_formula, k = 10) {
+  
   set.seed(123)
   folds <- createFolds(data[[target_col]], k = k, list = TRUE, returnTrain = FALSE)
   
@@ -115,4 +118,91 @@ evaluate_threshold <- function(probs, target, threshold) {
     Sensitivity = round(recall, 4),
     Specificity = round(specificity, 4)
   ))
+}
+
+find_best_thresholds_all <- function(probs, target) {
+  thresholds <- seq(0.01, 0.99, by = 0.01)
+  metrics <- lapply(thresholds, function(t) evaluate_threshold(probs, target, t))
+  
+  accs <- sapply(metrics, function(m) m$Accuracy)
+  f1s  <- sapply(metrics, function(m) m$F1)
+  sens <- sapply(metrics, function(m) m$Sensitivity)
+  
+  best_acc <- metrics[[which.max(accs)]]
+  best_f1  <- metrics[[which.max(f1s)]]
+  best_sen <- metrics[[which.max(sens)]]
+  
+  return(list(
+    Accuracy = best_acc,
+    F1 = best_f1,
+    Sensitivity = best_sen
+  ))
+}
+
+cv_lda_eval <- function(df, formula, model_name = "LDA_Model", k = 10) {
+  set.seed(123)
+  folds <- createFolds(df$target, k = k, list = TRUE)
+  results <- data.frame()
+  
+  for (i in 1:k) {
+    test_idx <- folds[[i]]
+    train_data <- df[-test_idx, ]
+    test_data  <- df[test_idx, ]
+    
+    model <- lda(formula, data = train_data)
+    probs <- predict(model, newdata = test_data)$posterior[, "1"]
+    target_test <- test_data$target
+    
+    best_metrics <- find_best_thresholds_all(probs, target_test)
+    
+    for (opt_for in c("Accuracy", "F1")) {
+      m <- best_metrics[[opt_for]]
+      results <- rbind(results, data.frame(
+        Model = model_name,
+        Fold = i,
+        Optimized_For = opt_for,
+        Threshold = m$Threshold,
+        Accuracy = m$Accuracy,
+        F1 = m$F1,
+        Sensitivity = m$Sensitivity,
+        Specificity = m$Specificity
+      ))
+    }
+  }
+  
+  return(results)
+}
+
+cv_qda_eval <- function(df, formula, model_name = "QDA_Model", k = 10) {
+  set.seed(123)
+  folds <- createFolds(df$target, k = k, list = TRUE)
+  results <- data.frame()
+  
+  for (i in 1:k) {
+    test_idx <- folds[[i]]
+    train_data <- df[-test_idx, ]
+    test_data  <- df[test_idx, ]
+    
+    model <- qda(formula, data = train_data)
+    probs <- predict(model, newdata = test_data)$posterior[, "1"]
+    target_test <- test_data$target
+    
+    best_metrics <- find_best_thresholds_all(probs, target_test)
+    
+    for (opt_for in c("Accuracy", "F1")) {
+      m <- best_metrics[[opt_for]]
+      results <- rbind(results, data.frame(
+        Model = model_name,
+        Fold = i,
+        Optimized_For = opt_for,
+        Threshold = m$Threshold,
+        Accuracy = m$Accuracy,
+        F1 = m$F1,
+        Sensitivity = m$Sensitivity,
+        Specificity = m$Specificity
+      ))
+    }
+  }
+  
+  return(results)
 }
