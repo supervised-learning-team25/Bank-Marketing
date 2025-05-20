@@ -57,7 +57,7 @@ attach(train)
 ```
 
 
-```{r child="Introduction.Rmd"} 
+```{r child="introduction.Rmd"} 
 ```
 
 ```{r child="EDA.Rmd"}

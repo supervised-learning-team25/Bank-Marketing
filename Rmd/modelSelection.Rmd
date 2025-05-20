@@ -59,7 +59,7 @@ drop_var<-c('pdays', "default", 'housing' ,"loan", "day_of_week",
             "month", "nr.employed", 'job', "duration")
 
 full_df <- train_bin[, !(names(train_bin) %in% drop_var)]
-full_df$target <-ifelse(subscribed=='yes', 1, 0)
+full_df$target <-factor(ifelse(subscribed=='yes', 1, 0))
 full_df<-full_df[, !(names(full_df)) %in% 'subscribed']
 detach(train)
 attach(full_df)
@@ -75,24 +75,60 @@ knitr::kable(varDf, align = "ll", caption = "21 Variable") %>%
 kableExtra::kable_styling(full_width = TRUE, position = "center", bootstrap_options = "striped")
 ```
 
-### STEPWISE selection
+### Logistic Regression
 
-```{r}
+**Logistic regression** is a widely used statistical model for binary **classification** tasks. It is based on the sigmoid (logistic) function, which maps any real-valued input into the interval (0, 1), making the output interpretable as a **probability**. Specifically, the probability that an observation belongs to class 1 is given by:
+
+<div class="center">
+$P(Y=1|X=x)=p(x)=\frac{e^{\beta_0+\beta_1x_1+\dots + \beta_n  x_n}}{1+e^{\beta_0+\beta_1x_1+\dots + \beta_n x_n}}$
+</div>
+
+To perform classification, a **decision threshold** is applied: if $p(x)$ exceeds the threshold (commonly 0.5), the observation is assigned to class 1; otherwise, it is assigned to class 0.
+
+Before training the model on the training set, we applied **two variable selection methods** to the entire dataset in order to reduce the large number of predictors. The selection criteria were: 
+
+- **Stepwise** selection in both directions, that optimizes the AIC at each step.
+
+- **LASSO,** which, as supported by the literature, often outperforms stepwise methods. 
+
+After that we checked for VIF, but for both models **there wasn’t any multicollinearity.**
+
+Once the relevant variables were selected using both methods, we employed **k-fold cross-validation** to obtain stable estimates of accuracy, misclassification error, and other useful metrics which will be used for comparison. We chose 10 folds, as it offers a good balance between computational efficiency, compared to LOOCV, and reliable model evaluation, as compared to 5-fold cross-validation.
+
+The variables we got from stepwise and LASSO are the following ones:
+
+```{r, echo= FALSE}
+df <- data.frame(
+  Full_dataset = c('age', 'single', 'cellular', 'low_call', 'previous', 'negative_emp', 'low_cpi', 'high_cci', 'low_euribor', 'university', 'p_course', 'job_student', 'job_retired', 'job_admin', 'month_sep', 'month_oct', 'month_dec', 'month_mar', 'p_failure', 'p_success', 'total'),
+  Stepwise_Model = c(' ', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', '20'),
+  Lasso_Model=c(' ', ' ', 'x', ' ', ' ', 'x', 'x', 'x', 'x', 'x', ' ', 'x', 'x', ' ', 'x', 'x', 'x', 'x', 'x', 'x', '14')
+)
+
+knitr::kable(df, align = 'ccc', caption = 'Model Variable Comparison')%>%
+  kableExtra::kable_styling(full_width = TRUE, position='center', bootstrap_options = c("striped"))
+
+```
+
+As we can see, **LASSO** was able to **shrink the number of variables more than Stepwise**. It's a simpler model. Let's now compare the two models at different thresholds. The **thresholds** maximize: 
+
+- **Accuracy,** that takes into account just the general accuracy of the model.
+
+- **F1** which is a metric useful in unbalanced dataset like ours, since it considers both precision (how many predicted positives are actual positives) and recall (how many actual positives are detected).
+
+We also have computed Sensitivity and Specificity.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 full_model <- glm(target ~ ., data = full_df, family = binomial)
 stepwise <- stepAIC(full_model, direction = "both", trace = FALSE)
-vif(stepwise)
 
 # predictore removed by Stepwise
-stepwise$anova
-
 stepwise_formula <- target ~ single + cellular + low_call + previous + negative_emp + 
   low_cpi + high_cci + low_euribor + university + p_course + 
   job_student + job_retired + job_admin + month_sep + month_oct + 
   month_dec + month_mar + p_failure + p_success
-```
 
-### LASSO selection
-```{r}
+
+
 set.seed(123)
 
 df_no_target <- subset(full_df, select = -target)
@@ -110,10 +146,7 @@ cv_fit <- cv.glmnet(
   family = "binomial"
 )
 
-plot(cv_fit)
-
 # predictors selected by Lasso
-coef(cv_fit, s = "lambda.1se")
 
 lasso_formula <- target ~ cellular + negative_emp + 
   low_cpi + high_cci + low_euribor + university + 
@@ -123,17 +156,11 @@ lasso_formula <- target ~ cellular + negative_emp +
 lasso_mod<-glm(lasso_formula, data=full_df, family=binomial)
 ```
 
-### Comperison
-```{r}
-summary(stepwise)
-summary(lasso_mod)
 
+```{r echo=FALSE, message=FALSE}
 # Compare the models
 stepwise_results <- k_fold_mod(data = full_df, target_col = "target", model_formula = stepwise)
 lasso_results    <- k_fold_mod(data = full_df, target_col = "target", model_formula = lasso_mod)
-
-print(stepwise_results)
-print(lasso_results)
 
 # Threshold evaluation
 probs_stepwise <- predict(stepwise, type = "response")
@@ -170,10 +197,16 @@ results_df <- do.call(rbind, lapply(names(results_list), function(name) {
 }))
 
 # Visualizza il risultato
-print(results_df)
+
+knitr::kable(results_df, align = 'ccccc', caption = 'Model Performance at Different Thresholds')  %>%
+  kableExtra::kable_styling(full_width = TRUE, position='center', bootstrap_options = c("striped"))
 
 ```
+The table shows that both models perform similarly in terms of accuracy and specificity. However, when the threshold is lowered from 0.5 to 0.2, both models achieve higher F1 scores and sensitivity, though at the expense of reduced accuracy and specificity.
 
+Between the two models, the LASSO-based logistic regression is slightly preferable, as it achieves comparable or slightly better F1 scores while benefiting from variable selection and model simplicity.
+
+Given the imbalance in the dataset, we prioritize a threshold that maximizes the F1 score rather than overall accuracy. This is because both false positives (wasting resources contacting uninterested customers) and false negatives (missing likely subscribers) are costly in this context. Therefore, a threshold that better balances precision and recall, reflected by a higher F1 score, is more appropriate for the bank’s decision-making.
 
 ### LDA
 
