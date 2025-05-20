@@ -347,6 +347,3 @@ The Exploratory Data Analysis reveals several important insights into the factor
 In summary, the analysis suggests that financial conditions, previous campaign interactions, and macroeconomic indicators are **strong predictors** of subscription behavior. Demographic factors such as age, occupation, and education level also contribute meaningfully to the outcome.
 
 In the next section, we will use these EDA findings to conduct a **preliminary skim** of the most influential variables, based on the visual trends observed in the plots.
-
-
-

@@ -67,12 +67,12 @@ attach(full_df)
 
 ```{r, echo=FALSE}
 varDf <- data.frame(
-  Variable = names(full_df),
+  Variable = c("age", "single", "cellular", "low_call", "previous", "negative_emp", "low_cpi", "high_cci", "low_euribor", "university", "p_course", "job_student", "job_retired", "job_admin", "month_sep", "month_oct", "month_dec", "month_mar", "p_failure", "p_success", "target"),
   Type = c("int", "bool", "bool", "bool", "int", "bool", "bool", "bool", "bool", "bool", "bool", "bool", "bool", "bool", "bool", "bool", "bool", "bool", "bool", "bool", "bool")
 )
 
-kable(varDf, align = "ll", caption = "21 Variable") %>%
-kable_styling(full_width = TRUE, position = "center", bootstrap_options = "striped")
+knitr::kable(varDf, align = "ll", caption = "21 Variable") %>%
+kableExtra::kable_styling(full_width = TRUE, position = "center", bootstrap_options = "striped")
 ```
 
 ### STEPWISE selection
@@ -230,40 +230,111 @@ auc(roc_obj)
 
 #### Models
 ```{r, echo=FALSE}
-qda_full_model     <- qda(target ~ ., data = full_df)
-qda_stepwise_model <- qda(stepwise_formula, data = full_df)
-qda_lasso_model    <- qda(lasso_formula, data = full_df)
+#qda_full_model     <- qda(target ~ ., data = full_df)
+#qda_stepwise_model <- qda(stepwise_formula, data = full_df)
+#qda_lasso_model    <- qda(lasso_formula, data = full_df)
 ```
 
 #### CV
 ```{r}
-results_qda_full     <- cv_qda_eval(full_df, target ~ ., model_name = "QDA_Full", k = 10)
-results_qda_stepwise <- cv_qda_eval(full_df, stepwise_formula, model_name = "QDA_Stepwise", k = 10)
-results_qda_lasso    <- cv_qda_eval(full_df, lasso_formula, model_name = "QDA_LASSO", k = 10)
+#results_qda_full     <- cv_qda_eval(full_df, target ~ ., model_name = "QDA_Full", k = 10)
+#results_qda_stepwise <- cv_qda_eval(full_df, stepwise_formula, model_name = "QDA_Stepwise", k = 10)
+#results_qda_lasso    <- cv_qda_eval(full_df, lasso_formula, model_name = "QDA_LASSO", k = 10)
 ```
 
 #### Evaluate
 ```{r}
-qda_results <- rbind(results_qda_full, results_qda_stepwise, results_qda_lasso)
+#qda_results <- rbind(results_qda_full, results_qda_stepwise, results_qda_lasso)
 
-aggregate(cbind(Accuracy, F1, Sensitivity, Specificity) ~ Model + Optimized_For, data = qda_results, mean)
-aggregate(Threshold ~ Model + Optimized_For, data = qda_results, mean)
+#aggregate(cbind(Accuracy, F1, Sensitivity, Specificity) ~ Model + Optimized_For, data = qda_results, mean)
+#aggregate(Threshold ~ Model + Optimized_For, data = qda_results, mean)
 ```
 
 #### Best QDA
 ```{r}
-print(qda_lasso_model)
+#print(qda_lasso_model)
 
-probs_qda <- predict(qda_lasso_model)$posterior[, "1"]
-pred_class_qda <- ifelse(probs_qda > 0.4, 1, 0)
-table(Predicted = pred_class_qda, Actual = full_df$target)
+#probs_qda <- predict(qda_lasso_model)$posterior[, "1"]
+#pred_class_qda <- ifelse(probs_qda > 0.4, 1, 0)
+#table(Predicted = pred_class_qda, Actual = full_df$target)
 
-evaluate_threshold(probs_qda, full_df$target, threshold = 0.4)
+#evaluate_threshold(probs_qda, full_df$target, threshold = 0.4)
 ```
 
 #### ROC Curve
 ```{r}
-roc_qda <- roc(full_df$target, probs_qda)
-plot(roc_qda, main = "ROC Curve for QDA LASSO Model")
-auc(roc_qda)
+#roc_qda <- roc(full_df$target, probs_qda)
+#plot(roc_qda, main = "ROC Curve for QDA LASSO Model")
+#auc(roc_qda)
+```
+
+
+### Random Forest
+
+```{r}
+df_for_Tree <- full_df
+df_for_Tree$target <- factor(ifelse(full_df$target == 1, "Yes", "No"))
+
+train_index <- createDataPartition(df_for_Tree$target, p = 0.8, list = FALSE)
+
+train_set <- df_for_Tree[train_index, ]
+test_set  <- df_for_Tree[-train_index, ]
+```
+
+```{r}
+set.seed(123)
+treeDf <- tree(target ~ ., train_set)
+
+summary(treeDf)
+```
+
+```{r}
+plot(treeDf)
+text(treeDf, pretty = 0)
+```
+
+```{r}
+#cvDf <- cv.tree(treeDf)
+#cvDf
+#plot(cvDf$size, cvDf$dev , type = "b")
+```
+
+
+```{r}
+set.seed(123)
+rf_train <- randomForest(target ~ ., train_set, mtry = 7, importance = TRUE)
+rf_train
+```
+
+```{r}
+tree_pred <- predict(rf_train, newdata = test_set)
+table(tree_pred, test_set$target)
+```
+
+```{r}
+importance(rf_train)
+```
+
+```{r}
+varImpPlot(rf_train)
+```
+
+```{r}
+#x <- full_df[, !(names(df_for_Tree) %in% "target")]
+#y <- full_df$target
+
+#xtrain <- x[train_index, ]
+#ytrain <- y[train_index]
+
+#xtest <- x[-train_index, ]
+#ytest <- y[-train_index]
+
+#set.seed(123)
+#bartfit <- lbart(xtrain, ytrain, x.test = xtest)
+```
+
+```{r}
+#yhat_bart <- bartfit$prob.test.mean
+#table(yhat_bart, test_set$target)
+#table(pred = yhat_bart > 0.5, actual = ytest)
 ```

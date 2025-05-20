@@ -45,8 +45,9 @@ library(tidyverse)
 library(glmnet) # for LASSO
 library(pROC)
 
-library(knitr)
-library(kableExtra)
+library(tree)
+library(randomForest)
+library(BART)
 ```
 
 ```{r, echo=FALSE, message=FALSE}
@@ -59,8 +60,8 @@ attach(train)
 ```{r child="Introduction.Rmd"} 
 ```
 
-#```{r child="EDA.Rmd"}
-#```
+```{r child="EDA.Rmd"}
+```
 
 ```{r child="modelSelection.Rmd"}
 ```
