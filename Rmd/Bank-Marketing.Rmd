@@ -48,6 +48,7 @@ library(pROC)
 library(tree)
 library(randomForest)
 library(BART)
+library(gbm)
 ```
 
 ```{r, echo=FALSE, message=FALSE}
@@ -56,6 +57,8 @@ train <- train %>% dplyr::select(-X)
 attach(train)
 ```
 
+```{r child="abstract.Rmd"} 
+```
 
 ```{r child="introduction.Rmd"} 
 ```
@@ -64,4 +67,7 @@ attach(train)
 ```
 
 ```{r child="modelSelection.Rmd"}
+```
+
+```{r child="conclusion.Rmd"} 
 ```

@@ -64,7 +64,7 @@ names(train_bin)[names(train_bin) == "campaign"] <- "low_call"
 
 ```{r, echo=FALSE}
 drop_var<-c('pdays', "default", 'housing' ,"loan", "day_of_week", 
-            "month", "nr.employed", 'job', "duration")
+            "month", "nr.employed", 'job', "duration", "emp_cat")
 
 full_df <- train_bin[, !(names(train_bin) %in% drop_var)]
 full_df$target <-factor(ifelse(subscribed=='yes', 1, 0))
@@ -216,9 +216,9 @@ Between the two models, the LASSO-based logistic regression is slightly preferab
 
 Given the imbalance in the dataset, we prioritize a threshold that maximizes the F1 score rather than overall accuracy. This is because both false positives (wasting resources contacting uninterested customers) and false negatives (missing likely subscribers) are costly in this context. Therefore, a threshold that better balances precision and recall, reflected by a higher F1 score, is more appropriate for the bank’s decision-making.
 
-### Random Forest
+### Decision tree
 
-```{r}
+```{r echo=FALSE}
 df_for_Tree <- full_df
 df_for_Tree$target <- factor(ifelse(full_df$target == 1, "Yes", "No"))
 
@@ -228,24 +228,19 @@ train_set <- df_for_Tree[train_index, ]
 test_set  <- df_for_Tree[-train_index, ]
 ```
 
-```{r}
+```{r echo=FALSE}
 set.seed(123)
 treeDf <- tree(target ~ ., train_set)
 
-summary(treeDf)
+#summary(treeDf)
 ```
 
-```{r}
+```{r echo=FALSE}
 plot(treeDf)
 text(treeDf, pretty = 0)
 ```
 
-```{r}
-#cvDf <- cv.tree(treeDf)
-#cvDf
-#plot(cvDf$size, cvDf$dev , type = "b")
-```
-
+#### Random Forest
 
 ```{r}
 set.seed(123)
@@ -258,30 +253,36 @@ tree_pred <- predict(rf_train, newdata = test_set)
 table(tree_pred, test_set$target)
 ```
 
-```{r}
-importance(rf_train)
+```{r echo=FALSE}
+#importance(rf_train)
 ```
 
-```{r}
+```{r echo=FALSE}
 varImpPlot(rf_train)
 ```
 
-```{r}
-#x <- full_df[, !(names(df_for_Tree) %in% "target")]
-#y <- full_df$target
+#### Boosting
 
-#xtrain <- x[train_index, ]
-#ytrain <- y[train_index]
+```{r echo=FALSE}
+train_set2 <- full_df[train_index, ]
+train_set2$target <- as.numeric(as.character(train_set2$target))
 
-#xtest <- x[-train_index, ]
-#ytest <- y[-train_index]
-
-#set.seed(123)
-#bartfit <- lbart(xtrain, ytrain, x.test = xtest)
+test_set2 <- full_df[-train_index, ]
+test_set2$target <- as.numeric(as.character(test_set2$target))
 ```
 
 ```{r}
-#yhat_bart <- bartfit$prob.test.mean
-#table(yhat_bart, test_set$target)
-#table(pred = yhat_bart > 0.5, actual = ytest)
+set.seed(123)
+boost_train <- gbm(target ~ ., data = train_set2, distribution = "bernoulli", n.trees = 5000, interaction.depth = 3)
+```
+
+
+```{r echo=FALSE}
+summary(boost_train)
+```
+
+
+```{r}
+yhat.boost <- predict(boost_train, newdata = test_set2, n.trees = 5000)
+table(pred = yhat.boost > 0.5, actual=test_set2$target)
 ```
