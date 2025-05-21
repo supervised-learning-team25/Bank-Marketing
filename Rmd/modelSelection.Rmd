@@ -1,9 +1,17 @@
-## Model selection
 
 ```{r, echo=FALSE}
 source("../R/MS_functions.R")
 ```
 
+## Model selection
+In this section, we explore different classification models to predict whether a client will subscribe to a term deposit.
+
+Before training the models, we applied a transformation algorithm to convert categorical variables into numerical format. This is a crucial step in the data preprocessing phase, as many machine learning algorithms require numerical input. We used **one-hot encoding** to make categorical variables compatible with the classification models. This method represents **each category as a binary variable**, avoiding the introduction of arbitrary numerical orderings among categories. In this way, we ensure a correct statistical interpretation of qualitative variables and improve the effectiveness of the model training process.
+
+However, among the classification models considered, LDA (Linear Discriminant Analysis) and QDA (Quadratic Discriminant Analysis) are not suitable in our case due to the nature of the predictor variables.
+In particular, most of the independent variables are binary and do not satisfy the fundamental assumption of normal distribution within each class, which is required by both methods. Furthermore, both models rely on covariance structures, whose interpretation becomes limited when applied to dichotomous variables.
+
+For these reasons, we decided not to pursue further analysis with LDA and QDA and instead focused on models that are better aligned with the structure of the data, such as **Logistic Regression** and **Random Forest**.
 
 ### Preprocessing
 Based on the Exploratory Data Analysis (EDA), we selected only the most relevant variables.
@@ -207,100 +215,6 @@ The table shows that both models perform similarly in terms of accuracy and spec
 Between the two models, the LASSO-based logistic regression is slightly preferable, as it achieves comparable or slightly better F1 scores while benefiting from variable selection and model simplicity.
 
 Given the imbalance in the dataset, we prioritize a threshold that maximizes the F1 score rather than overall accuracy. This is because both false positives (wasting resources contacting uninterested customers) and false negatives (missing likely subscribers) are costly in this context. Therefore, a threshold that better balances precision and recall, reflected by a higher F1 score, is more appropriate for the bank’s decision-making.
-
-### LDA
-
-#### Models
-```{r, echo=FALSE}
-lda_full_model <- lda(target ~ ., data = full_df)
-
-lda_stepwise_model <- lda(stepwise_formula, data = full_df)
-
-lda_lasso_model <- lda(lasso_formula, data = full_df)
-```
-
-#### CV
-```{r}
-results_lda_full <- cv_lda_eval(full_df, target ~ ., model_name = "LDA_Full", k = 10)
-
-results_lda_stepwise <- cv_lda_eval(full_df,stepwise_formula, model_name = "LDA_Stepwise", k = 10)
-
-results_lda_lasso <- cv_lda_eval(full_df, lasso_formula, model_name = "LDA_LASSO", k = 10)
-```
-
-#### Evaluate
-
-```{r}
-lda_results <- rbind(results_lda_full, results_lda_stepwise, results_lda_lasso)
-
-aggregate(cbind(Accuracy, F1, Sensitivity, Specificity) ~ Model + Optimized_For, data = lda_results, mean)
-aggregate(Threshold ~ Model + Optimized_For, data = lda_results, mean)
-```
-
-
-#### Best LDA
-
-```{r}
-print(lda_lasso_model)
-
-probs <- predict(lda_lasso_model)$posterior[, "1"]
-pred_class <- ifelse(probs > 0.16, 1, 0)
-table(Predicted = pred_class, Actual = full_df$target)
-
-evaluate_threshold(probs, full_df$target, threshold = 0.16)
-```
-
-#### ROC Curve
-
-```{r}
-roc_obj <- roc(full_df$target, probs)
-plot(roc_obj, main = "ROC Curve for LDA LASSO Model")
-auc(roc_obj)
-```
-
-
-### QDA
-
-#### Models
-```{r, echo=FALSE}
-#qda_full_model     <- qda(target ~ ., data = full_df)
-#qda_stepwise_model <- qda(stepwise_formula, data = full_df)
-#qda_lasso_model    <- qda(lasso_formula, data = full_df)
-```
-
-#### CV
-```{r}
-#results_qda_full     <- cv_qda_eval(full_df, target ~ ., model_name = "QDA_Full", k = 10)
-#results_qda_stepwise <- cv_qda_eval(full_df, stepwise_formula, model_name = "QDA_Stepwise", k = 10)
-#results_qda_lasso    <- cv_qda_eval(full_df, lasso_formula, model_name = "QDA_LASSO", k = 10)
-```
-
-#### Evaluate
-```{r}
-#qda_results <- rbind(results_qda_full, results_qda_stepwise, results_qda_lasso)
-
-#aggregate(cbind(Accuracy, F1, Sensitivity, Specificity) ~ Model + Optimized_For, data = qda_results, mean)
-#aggregate(Threshold ~ Model + Optimized_For, data = qda_results, mean)
-```
-
-#### Best QDA
-```{r}
-#print(qda_lasso_model)
-
-#probs_qda <- predict(qda_lasso_model)$posterior[, "1"]
-#pred_class_qda <- ifelse(probs_qda > 0.4, 1, 0)
-#table(Predicted = pred_class_qda, Actual = full_df$target)
-
-#evaluate_threshold(probs_qda, full_df$target, threshold = 0.4)
-```
-
-#### ROC Curve
-```{r}
-#roc_qda <- roc(full_df$target, probs_qda)
-#plot(roc_qda, main = "ROC Curve for QDA LASSO Model")
-#auc(roc_qda)
-```
-
 
 ### Random Forest
 

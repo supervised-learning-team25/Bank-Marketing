@@ -42,7 +42,7 @@ library(caret)
 library(ISLR)
 library(ISLR2)
 library(tidyverse)
-library(glmnet) # for LASSO
+library(glmnet)
 library(pROC)
 
 library(tree)
