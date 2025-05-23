@@ -216,7 +216,9 @@ Between the two models, the LASSO-based logistic regression is slightly preferab
 
 Given the imbalance in the dataset, we prioritize a threshold that maximizes the F1 score rather than overall accuracy. This is because both false positives (wasting resources contacting uninterested customers) and false negatives (missing likely subscribers) are costly in this context. Therefore, a threshold that better balances precision and recall, reflected by a higher F1 score, is more appropriate for the bank’s decision-making.
 
-### Decision tree
+### Decision Tree Ensemble Models
+
+Now we explore decision tree ensemble methods, which combine multiple decision trees to improve predictive performance and robustness. Unlike a single decision tree, which may suffer from high variance or overfitting, ensemble techniques like **Random Forest** and **Boosting** aggregate the predictions of many trees to achieve better generalization. In the following sections, we will train and evaluate models using both approaches, starting with Random Forest.
 
 ```{r echo=FALSE}
 df_for_Tree <- full_df
@@ -228,40 +230,35 @@ train_set <- df_for_Tree[train_index, ]
 test_set  <- df_for_Tree[-train_index, ]
 ```
 
-```{r echo=FALSE}
-set.seed(123)
-treeDf <- tree(target ~ ., train_set)
-
-#summary(treeDf)
-```
-
-```{r echo=FALSE}
-plot(treeDf)
-text(treeDf, pretty = 0)
-```
-
 #### Random Forest
 
-```{r}
+Let us train a **Random Forest classifier**. We set the mtry = n/3, where n is the number of variable, to control the number of variables randomly selected at each split. The model was trained on the full training set with 500 trees and feature importance enabled.
+
+```{r echo=FALSE}
 set.seed(123)
-rf_train <- randomForest(target ~ ., train_set, mtry = 7, importance = TRUE)
-rf_train
+rf_model <- randomForest(target ~ ., train_set, mtry = 7, importance = TRUE)
 ```
 
-```{r}
-tree_pred <- predict(rf_train, newdata = test_set)
-table(tree_pred, test_set$target)
-```
+The model return an **out-of-bag (OOB) error rate** of `r round(tail(rf_model$err.rate[, "OOB"], 1) * 100, 2)`, it's a good level of error, indicates a fairly robust generalization without overfitting.
 
 ```{r echo=FALSE}
-#importance(rf_train)
+
+# Vediamo alla fine le metriche
+#tree_pred <- predict(rf_train, newdata = test_set)
+#table(tree_pred, test_set$target)
 ```
 
+The following graphs represent the importance of each variable for accuracy and Gini impurity.
+
 ```{r echo=FALSE}
-varImpPlot(rf_train)
+varImpPlot(rf_model)
 ```
+
+Both measures highlight similar variables as important, suggesting consistent influence of features such as `age`, `p_success`, and `high_cci`. However, there are slight differences in ranking due to how each metric evaluates importance.
 
 #### Boosting
+
+Let us train a **Boosting classifier**, setting the number of trees to 5000 and the maximum depth of each tree to 3.
 
 ```{r echo=FALSE}
 train_set2 <- full_df[train_index, ]
@@ -271,18 +268,100 @@ test_set2 <- full_df[-train_index, ]
 test_set2$target <- as.numeric(as.character(test_set2$target))
 ```
 
-```{r}
+```{r include=FALSE}
 set.seed(123)
 boost_train <- gbm(target ~ ., data = train_set2, distribution = "bernoulli", n.trees = 5000, interaction.depth = 3)
+tmp <- summary(boost_train)
+```
+
+The following graph represent the importance of each variable.
+
+```{r}
+tmp$var <- factor(tmp$var, levels = tmp$var[order(tmp$rel.inf)])
+
+ggplot(tmp, aes(x = var, y = rel.inf)) +
+  geom_bar(stat = "identity", fill = "steelblue", alpha = 0.9) +
+  coord_flip() +
+  labs(title = "Relative Importance of Variables",
+       x = NULL,
+       y = "Relative Importance") +
+  theme_minimal()
+```
+
+For the boosting model, the most important variables are similar to those identified by the random forest. However, in boosting, `previous` appears to be more relevant.
+
+#### Random forest vs Boosting
+
+As previously discussed, we calculate, for each model, the threshold that maximizes the F1 score, since this metric provides a balanced measure of precision and recall. This approach is particularly suitable in scenarios with class imbalance, where both false positives and false negatives are critical.  
+In our case, the optimal threshold was found to be **0.12** for Random Forest and **0.15** for Boosting. 
+
+Using this values, we obtain the following performance metrics:
+
+```{r echo=FALSE}
+# Random Forest
+
+probs_rf <- predict(rf_model, newdata = test_set, type = "prob")[, "Yes"]
+
+# Founrd the best threshold
+best_f1 <- 0
+best_threshold <- 0
+thresholds <- seq(0.01, 0.99, by = 0.01)
+
+for (t in thresholds) {
+  preds <- ifelse(probs_rf >= t, "Yes", "No")
+  f1 <- F1_Score(y_pred = preds, y_true = test_set$target, positive = "Yes")
+  
+  if (!is.na(f1) && f1 > best_f1) {
+    best_f1 <- f1
+    best_threshold <- t
+  }
+}
+```
+
+```{r echo=FALSE}
+tree_pred_thresh <- ifelse(probs_rf >= best_threshold, "Yes", "No")
+
+# accuracy
+accuracy <- sum(tree_pred_thresh == test_set$target) / nrow(test_set)
+# specificity
+specificity <- sum(tree_pred_thresh == "No" & test_set$target == "No") / sum(test_set$target == "No")
+# sensitivity
+sensitivity <- sum(tree_pred_thresh == "Yes" & test_set$target == "Yes") / sum(test_set$target == "Yes")
+# F1 score
+f1_score <- F1_Score(y_pred = tree_pred_thresh, y_true = test_set$target, positive = "Yes")
+```
+
+```{r echo=FALSE, message=FALSE}
+probs_bo <- predict(boost_train, newdata = test_set2, n.trees = 5000, type = "response")
+
+roc_obj <- roc(test_set2$target, probs_bo)
+best_thresh <- coords(roc_obj, x = "best", best.method = "youden")
+
+y_true <- test_set2$target
+y_pred <- ifelse(probs_bo > best_thresh$threshold, 1, 0)
+
+conf_matrix <- table(Predicted = y_pred, True = y_true)
+
+# metric
+accuracy_bo <- mean(y_pred == y_true)
+specificity_bo <- sum(y_pred == 0 & y_true == 0) / sum(y_true == 0)
+sensitivity_bo <- sum(y_pred == 1 & y_true == 1) / sum(y_true == 1)
+f1_score_bo <- F1_Score(y_pred = y_pred, y_true = y_true, positive = "1")
+```
+
+
+```{r}
+results_tree <- data.frame(
+  Model = c("Random Forest", "Boosting"),
+  Threshold = c(0.12, 0.15),
+  Accuracy = c(round(accuracy, 3), round(accuracy_bo, 3)),
+  Specificity = c(round(specificity, 3), round(specificity_bo, 3)),
+  Sensitivity = c(round(sensitivity, 3), round(sensitivity_bo, 3)),
+  F1_Score = c(round(f1_score, 3), round(f1_score_bo,3)))
 ```
 
 
 ```{r echo=FALSE}
-summary(boost_train)
-```
-
-
-```{r}
-yhat.boost <- predict(boost_train, newdata = test_set2, n.trees = 5000)
-table(pred = yhat.boost > 0.5, actual=test_set2$target)
+knitr::kable(results_tree, align = 'cccccc', caption = 'Random forest vs Boosting')%>%
+  kableExtra::kable_styling(full_width = TRUE, position='center', bootstrap_options = c("striped"))
 ```
