@@ -239,7 +239,7 @@ set.seed(123)
 rf_model <- randomForest(target ~ ., train_set, mtry = 7, importance = TRUE)
 ```
 
-The model return an **out-of-bag (OOB) error rate** of `r round(tail(rf_model$err.rate[, "OOB"], 1) * 100, 2)`, it's a good level of error, indicates a fairly robust generalization without overfitting.
+The model return an **out-of-bag (OOB) error rate** of `r round(tail(rf_model$err.rate[, "OOB"], 1) * 100, 2)`%, it's a good level of error, indicates a fairly robust generalization without overfitting.
 
 ```{r echo=FALSE}
 
@@ -276,7 +276,7 @@ tmp <- summary(boost_train)
 
 The following graph represent the importance of each variable.
 
-```{r}
+```{r echo=FALSE}
 tmp$var <- factor(tmp$var, levels = tmp$var[order(tmp$rel.inf)])
 
 ggplot(tmp, aes(x = var, y = rel.inf)) +
@@ -292,10 +292,7 @@ For the boosting model, the most important variables are similar to those identi
 
 #### Random forest vs Boosting
 
-As previously discussed, we calculate, for each model, the threshold that maximizes the F1 score, since this metric provides a balanced measure of precision and recall. This approach is particularly suitable in scenarios with class imbalance, where both false positives and false negatives are critical.  
-In our case, the optimal threshold was found to be **0.12** for Random Forest and **0.15** for Boosting. 
-
-Using this values, we obtain the following performance metrics:
+As previously discussed, we calculate, for each model, the threshold that maximizes the F1 score, since this metric provides a balanced measure of precision and recall. This approach is particularly suitable in scenarios with class imbalance, where both false positives and false negatives are critical.
 
 ```{r echo=FALSE}
 # Random Forest
@@ -331,6 +328,16 @@ sensitivity <- sum(tree_pred_thresh == "Yes" & test_set$target == "Yes") / sum(t
 f1_score <- F1_Score(y_pred = tree_pred_thresh, y_true = test_set$target, positive = "Yes")
 ```
 
+```{r echo=FALSE}
+# Random Forest con threshold 0.5
+tree_pred_05 <- ifelse(probs_rf >= 0.5, "Yes", "No")
+
+accuracy_05 <- mean(tree_pred_05 == test_set$target)
+specificity_05 <- sum(tree_pred_05 == "No" & test_set$target == "No") / sum(test_set$target == "No")
+sensitivity_05 <- sum(tree_pred_05 == "Yes" & test_set$target == "Yes") / sum(test_set$target == "Yes")
+f1_score_05 <- F1_Score(y_pred = tree_pred_05, y_true = test_set$target, positive = "Yes")
+```
+
 ```{r echo=FALSE, message=FALSE}
 probs_bo <- predict(boost_train, newdata = test_set2, n.trees = 5000, type = "response")
 
@@ -349,19 +356,64 @@ sensitivity_bo <- sum(y_pred == 1 & y_true == 1) / sum(y_true == 1)
 f1_score_bo <- F1_Score(y_pred = y_pred, y_true = y_true, positive = "1")
 ```
 
+```{r echo=FALSE}
+# Boosting con threshold 0.5
+y_pred_bo_05 <- ifelse(probs_bo > 0.5, 1, 0)
 
-```{r}
-results_tree <- data.frame(
-  Model = c("Random Forest", "Boosting"),
-  Threshold = c(0.12, 0.15),
-  Accuracy = c(round(accuracy, 3), round(accuracy_bo, 3)),
-  Specificity = c(round(specificity, 3), round(specificity_bo, 3)),
-  Sensitivity = c(round(sensitivity, 3), round(sensitivity_bo, 3)),
-  F1_Score = c(round(f1_score, 3), round(f1_score_bo,3)))
+accuracy_bo_05 <- mean(y_pred_bo_05 == y_true)
+specificity_bo_05 <- sum(y_pred_bo_05 == 0 & y_true == 0) / sum(y_true == 0)
+sensitivity_bo_05 <- sum(y_pred_bo_05 == 1 & y_true == 1) / sum(y_true == 1)
+f1_score_bo_05 <- F1_Score(y_pred = y_pred_bo_05, y_true = y_true, positive = "1")
 ```
 
+```{r echo=FALSE}
+#results_tree <- data.frame(
+#  Model = c("Random Forest", "Boosting"),
+#  Threshold = c(0.12, 0.15),
+#  Accuracy = c(round(accuracy, 3), round(accuracy_bo, 3)),
+#  Specificity = c(round(specificity, 3), round(specificity_bo, 3)),
+#  Sensitivity = c(round(sensitivity, 3), round(sensitivity_bo, 3)),
+#  F1_Score = c(round(f1_score, 3), round(f1_score_bo,3)))
+
+results_tree <- data.frame(
+  Model = c("Random Forest", 
+            "Random Forest", 
+            "Boosting", 
+            "Boosting"),
+  Threshold = c(0.5, 
+                round(best_threshold, 2), 
+                0.5, 
+                round(best_thresh$threshold, 2)),
+  Accuracy = c(round(accuracy_05, 3), 
+               round(accuracy, 3), 
+               round(accuracy_bo_05, 3), 
+               round(accuracy_bo, 3)),
+  Specificity = c(round(specificity_05, 3), 
+                  round(specificity, 3), 
+                  round(specificity_bo_05, 3), 
+                  round(specificity_bo, 3)),
+  Sensitivity = c(round(sensitivity_05, 3), 
+                  round(sensitivity, 3), 
+                  round(sensitivity_bo_05, 3), 
+                  round(sensitivity_bo, 3)),
+  F1_Score = c(round(f1_score_05, 3), 
+               round(f1_score, 3), 
+               round(f1_score_bo_05, 3), 
+               round(f1_score_bo, 3))
+)
+```
+
+In our case, the optimal threshold was found to be `r round(best_threshold, 2)` for Random Forest and `r round(best_thresh$threshold, 2)` for Boosting. 
+
+Using this values, we obtain the following performance metrics:
 
 ```{r echo=FALSE}
 knitr::kable(results_tree, align = 'cccccc', caption = 'Random forest vs Boosting')%>%
   kableExtra::kable_styling(full_width = TRUE, position='center', bootstrap_options = c("striped"))
 ```
+
+At the default threshold (0.50), Random Forest slightly outperforms Boosting in terms of both accuracy and F1 score. Both models show high specificity (i.e., they are good at detecting the negative class), but very low sensitivity — indicating poor performance in identifying positive cases.
+
+When using the threshold that maximizes the F1 score, both models improve their sensitivity at the cost of some specificity. The Random Forest model achieves the highest F1 score (0.457), providing the best balance between precision and recall. Although the Boosting model reaches a higher sensitivity (0.664), it sacrifices more accuracy and specificity, resulting in a lower F1 score overall.
+
+Random Forest with a threshold of 0.10 is the best-performing model overall, as it achieves the highest F1 score while maintaining a reasonable trade-off between sensitivity and specificity. This suggests it offers the most balanced generalization ability for this classification task.
