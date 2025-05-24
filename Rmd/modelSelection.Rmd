@@ -267,6 +267,9 @@ tmp <- summary(boost_train)
 
 The following graph represent the importance of each variable.
 
+<div class="hscroll-plot" style="height: 450px;">
+
+<div class='plot-container'>
 ```{r echo=FALSE}
 tmp$var <- factor(tmp$var, levels = tmp$var[order(tmp$rel.inf)])
 
@@ -278,8 +281,33 @@ ggplot(tmp, aes(x = var, y = rel.inf)) +
        y = "Relative Importance") +
   theme_minimal()
 ```
+</div>
 
+<div class='plot-container'>
+```{r echo=FALSE}
+# log-odds
+partial <- plot(boost_train, i = "age", return.grid = TRUE)
+
+# convert log-odds to probability
+partial$prob <- 1 / (1 + exp(-partial$y))
+
+# plot
+ggplot(partial, aes(x = age, y = prob)) +
+  geom_line(color = "steelblue", size = 1) +
+  geom_hline(yintercept = 0.11, linetype = "dashed", color = "red") +
+  labs(
+    title = "Effect of 'AGE' on the predicted probability",
+    x = "Age",
+    y = "Probability of subscribing term deposit",
+  ) +
+  theme_minimal()
+```
+</div>
+</div>
+
+<div class="plot-text">
 For the boosting model, the most important variables are similar to those identified by the random forest. However, in boosting, `previous` appears to be more relevant.
+</div>
 
 #### Random forest vs Boosting
 
@@ -412,13 +440,8 @@ knitr::kable(results_tree, align = 'cccccc', caption = 'Random forest vs Boostin
   kableExtra::kable_styling(full_width = TRUE, position='center', bootstrap_options = c("striped"))
 ```
 
-At the default threshold (0.50), Random Forest slightly outperforms Boosting in terms of both accuracy and F1 score. Both models show high specificity (i.e., they are good at detecting the negative class), but very low sensitivity — indicating poor performance in identifying positive cases.
+At the default threshold (0.50), Random Forest is similar to Boosting. Both models show high specificity (i.e., they are good at detecting the negative class), but very low sensitivity — indicating poor performance in identifying positive cases.
 
-When using the threshold that maximizes the F1 score, both models improve their sensitivity at the cost of some specificity. The Random Forest model achieves the highest F1 score (0.457), providing the best balance between precision and recall. Although the Boosting model reaches a higher sensitivity (0.664), it sacrifices more accuracy and specificity, resulting in a lower F1 score overall.
+When using the threshold that maximizes the F1 score, both models improve their sensitivity at the cost of some specificity. The **Random Forest** model achieves the highest F1 score (`r round(f1_score, 3)`), providing the best balance between precision and recall. Although the **Boosting** model reaches a higher sensitivity (`r round(sensitivity_bo, 3)`), it sacrifices more accuracy and specificity, resulting in a lower F1 score overall.
 
-Random Forest with a threshold of `r round(best_threshold, 2)` is the best-performing model overall, as it achieves the highest F1 score while maintaining a reasonable trade-off between sensitivity and specificity. This suggests it offers the most balanced generalization ability for this classification task.
-
-
-
-
-
+Random Forest with a threshold of `r round(best_threshold, 2)` is the best-performing model overall, as it achieves the highest F1 score while maintaining a reasonable trade-off between all metrics. This suggests it offers the most balanced generalization ability for this classification task.

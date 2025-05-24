@@ -1,8 +1,12 @@
 ## Conclusion
 
-In our case study, which focuses on term deposit subscriptions, we need to choose a model that maximizes **sensitivity**. This metric measures how many of the customers who would have subscribed were correctly identified by the model. The bank prefers to reach everyone who might potentially say “yes,” even at the cost of contacting some who will eventually say “no,” in order not to miss any possible customers.
+In our case study, which focuses on term deposit subscriptions, need to choose a model that *maximizes sensitivity without lowering precision too much*.
 
-For this reason, we analize the metric of each model selected before and chose the bestone:
+The **sensitivity** measures how many of the customers who would have subscribed were correctly identified by the model. The bank prefers to reach everyone who might potentially say “yes” even at the cost of contacting some who will eventually say “no” in order not to miss any possible customers.
+
+On the other hand, we want to avoid decreasing **precision** too much. This metric measures, among all the instances the model predicts as “Yes”, how many actually said “Yes.” Maintaining high precision is important in our context, because contacting people who are not interested may harm the bank’s credibility and lead to wasted resources.
+
+Therefore, we analyze the metrics of each previously selected model and choose the best one:
 
 ```{r, echo=FALSE}
 final_table <- data.frame(
@@ -19,10 +23,4 @@ knitr::kable(final_table, align = 'cccccc', caption = 'Final Model Comparison') 
   kableExtra::kable_styling(full_width = TRUE, position='center', bootstrap_options = c("striped"))
 ```
 
-So the bestone is the **Boosting model** because we have an increas of sensitivity of 6% compared to the LASSO Logistic Regression model, but at the cost of reducing the accuracy of 3%.
-
-
-
-
-
-
+Overall, **Random Forest** with a threshold of `r round(best_threshold, 2)` appears to be the better-performing model. It achieves higher accuracy, precision, and F1 score, and it maintains strong specificity, offering a solid trade-off between detecting potential subscribers and avoiding unnecessary contacts.
