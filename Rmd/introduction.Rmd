@@ -5,4 +5,10 @@ A **deposit account** is a bank account maintained by a financial institution in
 
 The dataset includes client demographics, previous campaign interactions, and economic indicators. Our goal is to develop insights that will enhance the effectiveness of future marketing strategies. By applying supervised learning techniques, we aim to predict customer responses and optimize outreach efforts for better engagement and conversion rates.
 
-The report will begin with an Exploratory Data Analysis, examining the variables and their relationship with the target attribute (subscribed) to identify the most influential factors.
+Specifically, the analysis aims to answer two main questions: 
+
+1. What is the model’s performance in predicting customer subscription, and how effective is it in identifying potential subscribers?
+2. Which variables most influence the decision to subscribe to the term deposit?
+3. How can the financial institution have a greater effectiveness for future marketing campaigns? 
+
+The report begins with an Exploratory Data Analysis (EDA), examining the variables and their relationship with the target attribute (subscribed) to identify the most influential factors.

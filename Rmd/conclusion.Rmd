@@ -6,7 +6,7 @@ The **sensitivity** measures how many of the customers who would have subscribed
 
 On the other hand, we want to avoid decreasing **precision** too much. This metric measures, among all the instances the model predicts as “Yes”, how many actually said “Yes.” Maintaining high precision is important in our context, because contacting people who are not interested may harm the bank’s credibility and lead to wasted resources.
 
-Therefore, we analyze the metrics of each previously selected model and choose the best one:
+Therefore, we analyze the performance metrics of each previously selected model in order to answer the **first question** posed in the introduction:
 
 ```{r, echo=FALSE}
 final_table <- data.frame(
@@ -24,3 +24,40 @@ knitr::kable(final_table, align = 'cccccc', caption = 'Final Model Comparison') 
 ```
 
 Overall, **Random Forest** with a threshold of `r round(best_threshold, 2)` appears to be the better-performing model. It achieves higher accuracy, precision, and F1 score, and it maintains strong specificity, offering a solid trade-off between detecting potential subscribers and avoiding unnecessary contacts.
+
+To answer the **second question**, regarding the influence of variables on term deposit subscriptions, we refer to the **variable importance plot from the Random Forest model**.
+According to both MeanDecreaseAccuracy and MeanDecreaseGini, the most influential variables in predicting subscription are:
+
+- `age` (age of the customer),
+- `p_success` (past campaign success),
+- `high_cci` (high consumer confidence index),
+- `low_euribor` (low Euribor rate),
+- `negative_emp` (negative employment variation rate),
+- `low_cpi` (low Consumer Price Index).
+
+These features significantly contribute to the model’s predictive power and provide valuable insights for improving future marketing strategies.
+
+These findings are consistent with the broader economic and social context of the data, which covers the period from **2008** to **2013**, **during and after the global financial crisis**. In such an environment, characterized by high uncertainty and low trust in financial markets, customers tended to adopt conservative financial behaviors.
+
+The strong influence of variables like **low Euribor**, **negative employment variation**, and **low CPI** suggests that clients were highly sensitive to macroeconomic conditions. In times of economic distress, the **perceived safety and predictability of term deposits** became particularly appealing, even when interest rates were low.
+
+Moreover, **age** and **previous campaign success** reflect behavioral and trust-related aspects. Older individuals are generally more risk-averse, while a successful previous interaction with the bank increases the likelihood of continued engagement. Similarly, a **high Consumer Confidence Index** may indicate a more optimistic sentiment among consumers, making them more receptive to financial products offered by a trusted institution.
+
+Taken together, these variables underline the importance of **targeted marketing strategies** that consider both **economic conditions** and **individual customer profiles**. Understanding these drivers allows banks to more effectively design and promote financial products, especially in times of uncertainty.
+
+At the end, to answer the **third question** regarding the improvement of marketing campaigns, we can conclude that:  
+The financial institution should leverage the identified key predictors to create more personalized and context-aware marketing strategies. For example:
+
+- Focus on **older customers** and those who previously subscribed, as they are more likely to respond positively.  
+- Monitor macroeconomic indicators (such as Euribor, CPI, and employment variation) and **time the campaigns** during periods of financial uncertainty, when customers are more inclined to seek secure investment options like term deposits.  
+- Tailor messaging based on the **current level of consumer confidence**, reinforcing the safety and reliability of the product.
+
+By aligning campaign efforts with both individual customer characteristics and the broader economic environment, the institution can improve customer targeting, increase conversion rates, and strengthen long-term customer relationships.
+
+
+
+
+
+
+
+
