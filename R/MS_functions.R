@@ -114,8 +114,9 @@ evaluate_threshold <- function(probs, target, threshold) {
   return(list(
     Threshold   = threshold,
     Accuracy    = round(accuracy, 4),
-    F1          = round(f1, 4),
+    Precision   = round(precision, 4),
     Sensitivity = round(recall, 4),
-    Specificity = round(specificity, 4)
+    Specificity = round(specificity, 4),
+    F1          = round(f1, 4)
   ))
 }

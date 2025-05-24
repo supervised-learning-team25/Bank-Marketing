@@ -11,7 +11,7 @@ Before training the models, we applied a transformation algorithm to convert cat
 However, among the classification models considered, LDA (Linear Discriminant Analysis) and QDA (Quadratic Discriminant Analysis) are not suitable in our case due to the nature of the predictor variables.
 In particular, most of the independent variables are binary and do not satisfy the fundamental assumption of normal distribution within each class, which is required by both methods. Furthermore, both models rely on covariance structures, whose interpretation becomes limited when applied to dichotomous variables.
 
-For these reasons, we decided not to pursue further analysis with LDA and QDA and instead focused on models that are better aligned with the structure of the data, such as **Logistic Regression** and **Random Forest**.
+For these reasons, we decided not to pursue further analysis with LDA and QDA and instead focused on models that are better aligned with the structure of the data, such as **Logistic Regression**, **Random Forest** and **Boosting**.
 
 ### Preprocessing
 Based on the Exploratory Data Analysis (EDA), we selected only the most relevant variables.
@@ -79,7 +79,7 @@ varDf <- data.frame(
   Type = c("int", "bool", "bool", "bool", "int", "bool", "bool", "bool", "bool", "bool", "bool", "bool", "bool", "bool", "bool", "bool", "bool", "bool", "bool", "bool", "bool")
 )
 
-knitr::kable(varDf, align = "ll", caption = "21 Variable") %>%
+knitr::kable(varDf, align = "ll", caption = "Selected Variables (21)") %>%
 kableExtra::kable_styling(full_width = TRUE, position = "center", bootstrap_options = "striped")
 ```
 
@@ -191,17 +191,7 @@ results_list <- list(
 
 # Trasforma in data.frame
 results_df <- do.call(rbind, lapply(names(results_list), function(name) {
-  res <- results_list[[name]]
-  model <- sub("_.*", "", name)
-  threshold <- res$Threshold
-  data.frame(
-    Model       = model,
-    Threshold   = threshold,
-    Accuracy    = res$Accuracy,
-    F1          = res$F1,
-    Sensitivity = res$Sensitivity,
-    Specificity = res$Specificity
-  )
+  data.frame(Model_Threshold = name, as.data.frame(t(unlist(results_list[[name]]))))
 }))
 
 # Visualizza il risultato
@@ -224,6 +214,7 @@ Now we explore decision tree ensemble methods, which combine multiple decision t
 df_for_Tree <- full_df
 df_for_Tree$target <- factor(ifelse(full_df$target == 1, "Yes", "No"))
 
+set.seed(123)
 train_index <- createDataPartition(df_for_Tree$target, p = 0.8, list = FALSE)
 
 train_set <- df_for_Tree[train_index, ]
@@ -320,6 +311,8 @@ tree_pred_thresh <- ifelse(probs_rf >= best_threshold, "Yes", "No")
 
 # accuracy
 accuracy <- sum(tree_pred_thresh == test_set$target) / nrow(test_set)
+#precision
+precision <- sum(tree_pred_thresh == "Yes" & test_set$target == "Yes") / sum(tree_pred_thresh == "Yes")
 # specificity
 specificity <- sum(tree_pred_thresh == "No" & test_set$target == "No") / sum(test_set$target == "No")
 # sensitivity
@@ -333,6 +326,7 @@ f1_score <- F1_Score(y_pred = tree_pred_thresh, y_true = test_set$target, positi
 tree_pred_05 <- ifelse(probs_rf >= 0.5, "Yes", "No")
 
 accuracy_05 <- mean(tree_pred_05 == test_set$target)
+precision_o5 <- sum(tree_pred_05 == "Yes" & test_set$target == "Yes") / sum(tree_pred_05 == "Yes")
 specificity_05 <- sum(tree_pred_05 == "No" & test_set$target == "No") / sum(test_set$target == "No")
 sensitivity_05 <- sum(tree_pred_05 == "Yes" & test_set$target == "Yes") / sum(test_set$target == "Yes")
 f1_score_05 <- F1_Score(y_pred = tree_pred_05, y_true = test_set$target, positive = "Yes")
@@ -351,6 +345,7 @@ conf_matrix <- table(Predicted = y_pred, True = y_true)
 
 # metric
 accuracy_bo <- mean(y_pred == y_true)
+precision_bo <- sum(y_pred == 1 & y_true == 1) / sum(y_pred == 1)
 specificity_bo <- sum(y_pred == 0 & y_true == 0) / sum(y_true == 0)
 sensitivity_bo <- sum(y_pred == 1 & y_true == 1) / sum(y_true == 1)
 f1_score_bo <- F1_Score(y_pred = y_pred, y_true = y_true, positive = "1")
@@ -361,6 +356,7 @@ f1_score_bo <- F1_Score(y_pred = y_pred, y_true = y_true, positive = "1")
 y_pred_bo_05 <- ifelse(probs_bo > 0.5, 1, 0)
 
 accuracy_bo_05 <- mean(y_pred_bo_05 == y_true)
+precision_bo_05 <- sum(y_pred_bo_05 == 1 & y_true == 1) / sum(y_pred_bo_05 == 1)
 specificity_bo_05 <- sum(y_pred_bo_05 == 0 & y_true == 0) / sum(y_true == 0)
 sensitivity_bo_05 <- sum(y_pred_bo_05 == 1 & y_true == 1) / sum(y_true == 1)
 f1_score_bo_05 <- F1_Score(y_pred = y_pred_bo_05, y_true = y_true, positive = "1")
@@ -388,14 +384,18 @@ results_tree <- data.frame(
                round(accuracy, 3), 
                round(accuracy_bo_05, 3), 
                round(accuracy_bo, 3)),
-  Specificity = c(round(specificity_05, 3), 
-                  round(specificity, 3), 
-                  round(specificity_bo_05, 3), 
-                  round(specificity_bo, 3)),
+  Precision = c(round(precision_o5, 3), 
+                  round(precision, 3), 
+                  round(precision_bo_05, 3), 
+                  round(precision_bo, 3)),
   Sensitivity = c(round(sensitivity_05, 3), 
                   round(sensitivity, 3), 
                   round(sensitivity_bo_05, 3), 
                   round(sensitivity_bo, 3)),
+  Specificity = c(round(specificity_05, 3), 
+                  round(specificity, 3), 
+                  round(specificity_bo_05, 3), 
+                  round(specificity_bo, 3)),
   F1_Score = c(round(f1_score_05, 3), 
                round(f1_score, 3), 
                round(f1_score_bo_05, 3), 
@@ -416,4 +416,9 @@ At the default threshold (0.50), Random Forest slightly outperforms Boosting in 
 
 When using the threshold that maximizes the F1 score, both models improve their sensitivity at the cost of some specificity. The Random Forest model achieves the highest F1 score (0.457), providing the best balance between precision and recall. Although the Boosting model reaches a higher sensitivity (0.664), it sacrifices more accuracy and specificity, resulting in a lower F1 score overall.
 
-Random Forest with a threshold of 0.10 is the best-performing model overall, as it achieves the highest F1 score while maintaining a reasonable trade-off between sensitivity and specificity. This suggests it offers the most balanced generalization ability for this classification task.
+Random Forest with a threshold of `r round(best_threshold, 2)` is the best-performing model overall, as it achieves the highest F1 score while maintaining a reasonable trade-off between sensitivity and specificity. This suggests it offers the most balanced generalization ability for this classification task.
+
+
+
+
+

@@ -1,1 +1,28 @@
 ## Conclusion
+
+In our case study, which focuses on term deposit subscriptions, we need to choose a model that maximizes **sensitivity**. This metric measures how many of the customers who would have subscribed were correctly identified by the model. The bank prefers to reach everyone who might potentially say “yes,” even at the cost of contacting some who will eventually say “no,” in order not to miss any possible customers.
+
+For this reason, we analize the metric of each model selected before and chose the bestone:
+
+```{r, echo=FALSE}
+final_table <- data.frame(
+  Model = c('LASSO Logistic', 'Random Forest'),
+  Threshold = c(0.20, best_threshold),
+  Accuracy = c(res_lasso_02$Accuracy, round(accuracy, 3)),
+  Precision = c(res_lasso_02$Precision, round(precision, 3)),
+  Sensitivity = c(res_lasso_02$Sensitivity, round(sensitivity, 3)),
+  Specificity = c(res_lasso_02$Specificity, round(specificity, 3)),
+  F1_Score = c(res_lasso_02$F1, round(f1_score, 3))
+)
+
+knitr::kable(final_table, align = 'cccccc', caption = 'Final Model Comparison') %>%
+  kableExtra::kable_styling(full_width = TRUE, position='center', bootstrap_options = c("striped"))
+```
+
+So the bestone is the **Boosting model** because we have an increas of sensitivity of 6% compared to the LASSO Logistic Regression model, but at the cost of reducing the accuracy of 3%.
+
+
+
+
+
+

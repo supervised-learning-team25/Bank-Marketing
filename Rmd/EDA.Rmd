@@ -112,7 +112,7 @@ plot_ly(data=train, x=age, y=subscribed,
 ```
 <div class="plot-text">
 <strong style="color: #317eac">Box plot of age</strong><br>
-It is harder to see older people say no
+The boxplot reveals that subscribers generally have a higher average age than non-subscribers. The rightward shift of the interquartile range suggests a potential <strong>positive relationship between age and the probability of subscribing</strong>.
 </div>
 </div>
 
@@ -126,7 +126,7 @@ plot_ly(data=train, x=~emp.var.rate, y=~subscribed, split=~subscribed,
 ```
 <div class="plot-text">
 <strong style="color: #317eac">Box plot of emp.var.rate</strong><br>
-Text
+Surprisingly, clients who subscribed are mostly associated with negative values of emp.var.rate, as their interquartile range lies entirely below zero. On the other hand, non-subscribers show a broader distribution that includes both negative and positive values, with the majority of the density concentrated around one. This suggests that <strong>subscription is more likely to occur during periods of economic downturn</strong>, when the employment variation rate is decreasing.
 </div>
 </div>
 
@@ -142,7 +142,7 @@ plot_ly(data=train, x=~euribor3m, y=~subscribed, split=~subscribed,
 ```
 <div class="plot-text">
 <strong style="color: #317eac">Box plot of euribor3m</strong><br>
-Text
+Although both groups show a relatively large interquartile range, the concentration of their distributions reveals an interesting pattern: clients who subscribed are surprisingly associated with lower values of euribor3m, while non-subscribers tend to be linked to higher euribor3m values. This suggests that <strong>lower euribor rates may positively influence the likelihood of subscription</strong>.
 </div>
 </div>
 </div>
@@ -195,7 +195,7 @@ print(maritalVar)
 ```
 <div class="plot-text">
 <strong style="color: #317eac">Distribution of Marital status</strong><br>
-Text.
+The majority of clients are married, followed by single and divorced individuals. However, when looking at the subscription rate by marital status, single clients show a higher proportion of "yes" responses compared to the other groups. This suggests that single individuals may be more likely to subscribe to the term deposit than married or divorced clients.
 </div>
 </div>
 
@@ -205,7 +205,7 @@ print(contactVar)
 ```
 <div class="plot-text">
 <strong style="color: #317eac">Distribution of Contact</strong><br>
-Text.
+Most clients were contacted via cellular phone rather than landline. Moreover, the subscription rate is notably higher among those contacted by cellular, suggesting that this channel is more effective in reaching potential subscribers.
 </div>
 </div>
 </div>
