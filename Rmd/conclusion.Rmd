@@ -28,8 +28,8 @@ Overall, **Random Forest** with a threshold of `r round(best_threshold, 2)` appe
 To answer the **second question**, regarding the influence of variables on term deposit subscriptions, we refer to the **variable importance plot from the Random Forest model**.
 According to both MeanDecreaseAccuracy and MeanDecreaseGini, the most influential variables in predicting subscription are:
 
-- `age` (age of the customer),
 - `p_success` (past campaign success),
+- `age` (age of the customer),
 - `high_cci` (high consumer confidence index),
 - `low_euribor` (low Euribor rate),
 - `negative_emp` (negative employment variation rate),

@@ -121,9 +121,9 @@ As we can see, **LASSO** was able to **shrink the number of variables more than 
 
 - **Accuracy,** that takes into account just the general accuracy of the model.
 
-- **F1** which is a metric useful in unbalanced dataset like ours, since it considers both precision (how many predicted positives are actual positives) and recall (how many actual positives are detected).
+- **F1** which is a metric useful in unbalanced dataset like ours, since it considers both precision (how many predicted positives are actual positives) and recall, or Sensitivity, (how many actual positives are detected).
 
-We also have computed Sensitivity and Specificity.
+We also have computed Specificity (how many actual negatives are detected).
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 full_model <- glm(target ~ ., data = full_df, family = binomial)
@@ -204,7 +204,7 @@ The table shows that both models perform similarly in terms of accuracy and spec
 
 Between the two models, the LASSO-based logistic regression is slightly preferable, as it achieves comparable or slightly better F1 scores while benefiting from variable selection and model simplicity.
 
-Given the imbalance in the dataset, we prioritize a threshold that maximizes the F1 score rather than overall accuracy. This is because both false positives (wasting resources contacting uninterested customers) and false negatives (missing likely subscribers) are costly in this context. Therefore, a threshold that better balances precision and recall, reflected by a higher F1 score, is more appropriate for the bank’s decision-making.
+Given the imbalance in the dataset, we prioritize a threshold that maximizes the F1 score rather than overall accuracy. This is because both false positives (wasting resources contacting uninterested customers, and potentially harming the bank reputation) and false negatives (missing likely subscribers) are costly in this context. Therefore, a threshold that better balances precision and recall (Sensitivity), reflected by a higher F1 score, is more appropriate for the bank’s decision-making.
 
 ### Decision Tree Ensemble Models
 
@@ -223,11 +223,11 @@ test_set  <- df_for_Tree[-train_index, ]
 
 #### Random Forest
 
-Let us train a **Random Forest classifier**. We set the mtry = n/3, where n is the number of variable, to control the number of variables randomly selected at each split. The model was trained on the full training set with 500 trees and feature importance enabled.
+Let us train a **Random Forest classifier**. We set the mtry = $\sqrt{n}$, where n is the number of variable, to control the number of variables randomly selected at each split. The model was trained on the full training set with 500 trees and feature importance enabled.
 
 ```{r echo=FALSE}
 set.seed(123)
-rf_model <- randomForest(target ~ ., train_set, mtry = 7, importance = TRUE)
+rf_model <- randomForest(target ~ ., train_set, mtry = 4, importance = TRUE)
 ```
 
 The model return an **out-of-bag (OOB) error rate** of `r round(tail(rf_model$err.rate[, "OOB"], 1) * 100, 2)`%, it's a good level of error, indicates a fairly robust generalization without overfitting.
