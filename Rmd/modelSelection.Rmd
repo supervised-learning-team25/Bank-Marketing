@@ -400,10 +400,10 @@ f1_score_bo_05 <- F1_Score(y_pred = y_pred_bo_05, y_true = y_true, positive = "1
 #  F1_Score = c(round(f1_score, 3), round(f1_score_bo,3)))
 
 results_tree <- data.frame(
-  Model = c("Random Forest", 
-            "Random Forest", 
-            "Boosting", 
-            "Boosting"),
+  Model = c("Random Forest 0.5", 
+            "Random Forest 0.03", 
+            "Boosting 0.5", 
+            "Boosting 0.11"),
   Threshold = c(0.5, 
                 round(best_threshold, 2), 
                 0.5, 
