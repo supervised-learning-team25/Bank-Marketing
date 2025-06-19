@@ -1,1 +1,14 @@
 ## Abstract {-}
+
+This study analyzes data from a Portuguese bank’s direct marketing campaigns to identify the key factors influencing
+customer subscription to term deposits and to develop a predictive model for optimizing future outreach eﬀorts. Using
+exploratory data analysis and supervised learning techniques, including logistic regression (LASSO), Random Forest,
+and Boosting, we examine how demographic, behavioral, and macroeconomic variables aﬀect subscription behavior.
+
+Our findings highlight the importance of previous campaign success, age, and macroeconomic indicators such as
+Euribor rate, CPI, and employment variation. Among the tested models, Random Forest with a tuned threshold oﬀers
+the best balance between sensitivity and precision, making it the most suitable for minimizing missed opportunities
+while avoiding unnecessary contacts.
+
+These insights provide actionable recommendations for designing more eﬀective, data-driven marketing strategies
+tailored to customer profiles and economic contexts.
