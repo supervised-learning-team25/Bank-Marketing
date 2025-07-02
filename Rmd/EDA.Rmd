@@ -213,10 +213,27 @@ Most clients were contacted via cellular phone rather than landline. Moreover, t
 #### Previous Campaign Data {-}
 
 <div class="hscroll-plot" style="height: 450px;">
-```{r warning=FALSE, echo=FALSE, fig.width=7, fig.height=5}
+```{r echo=FALSE, fig.height=5, fig.width=7, warning=FALSE}
+options(error = recover)
+
 previousVar <- freqRespOnSubscribed(train, previous, "Number of calls previous campain")
 poutcomeVar <- freqRespOnSubscribed(train, poutcome, "Poutcome")
-campaignVar <- freqRespOnSubscribed(train, campaign, "Campaign")
+
+
+
+# Prendi i 10 valori più frequenti
+top_10_campaigns <- train %>%
+  count(campaign, sort = TRUE) %>%
+  slice_head(n = 10) %>%
+  pull(campaign)
+
+# Filtra il dataset per includere solo questi 10
+train_top10 <- train %>%
+  filter(campaign %in% top_10_campaigns) %>%
+  mutate(campaign = as.factor(campaign))  # se vuoi forzare come fattore
+
+
+campaignVar <- freqRespOnSubscribed(train_top10, campaign, "Campaign")
 ```
 
 <div class='plot-container'>
